@@ -62,7 +62,7 @@ class ProxyConnection implements Connection {
 
     }
 
-    public void reallyClose() throws SQLException {
+    void reallyClose() throws SQLException {
         connection.close();
     }
 
