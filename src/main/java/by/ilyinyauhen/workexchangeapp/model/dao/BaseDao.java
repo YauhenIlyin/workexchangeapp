@@ -20,6 +20,10 @@ public interface BaseDao<K, T extends BaseEntity> {
 
     boolean createEntity(T t) throws DaoException;
 
+    boolean activateAccount(T t) throws DaoException;
+
+    boolean activateAccountById(K id) throws DaoException;
+
     T updateEntity(T t) throws DaoException;
 
     default void close(Statement statement) throws DaoException {
@@ -40,6 +44,13 @@ public interface BaseDao<K, T extends BaseEntity> {
         } catch (SQLException e) {
             throw new DaoException("BaseDao.interface: default close(Connection x): connection.close() error", e);
         }
+    }
+
+    enum CrudOperationName {
+        INSERT,
+        SELECT,
+        UPDATE,
+        DELETE
     }
 
 }

@@ -11,17 +11,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class MySqlConnectionFactory {
 
+    private static AtomicBoolean isInitialise = new AtomicBoolean(false);
+    private static MySqlConnectionFactory instance;
     private final String PROPERTY_KEY_WORD_DB_LOGIN = "db.login";
     private final String PROPERTY_KEY_WORD_DB_PASSWORD = "db.password";
     private final String PROPERTY_KEY_WORD_DB_ADDRESS = "db.address";
     private final String PROPERTY_KEY_WORD_DB_PORT = "db.port";
     private final String PROPERTY_KEY_WORD_DB_NAME = "db.name";
     private PropertyManager propertyManager;
-    private static AtomicBoolean isInitialise = new AtomicBoolean(false);
-    private static MySqlConnectionFactory instance;
+    private char[] dbAddress;
+    private char[] dbPort;
+    private char[] dbName;
+    private char[] dbLogin;
+    private char[] dbPassword;
 
     private MySqlConnectionFactory() throws DaoException {
         propertyManager = PropertyManager.getInstance();
+        dbAddress = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_ADDRESS);
+        dbPort = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_PORT);
+        dbName = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_NAME);
+        dbLogin = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_LOGIN);
+        dbPassword = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_PASSWORD);
         try {
             Driver driver = new com.mysql.cj.jdbc.Driver();
             DriverManager.registerDriver(driver);
@@ -40,15 +50,10 @@ class MySqlConnectionFactory {
     }
 
     Connection getProxyConnection() throws DaoException {
-        char[] dbAddress = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_ADDRESS);
-        char[] dbPort = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_PORT);
-        char[] dbName = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_NAME);
         StringBuilder sbUrl = new StringBuilder(45);
         sbUrl.append(dbAddress).append(dbPort).append('/').append(dbName);
-        char[] dbLogin = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_LOGIN);
         StringBuilder sbLogin = new StringBuilder(10);
         sbLogin.append(dbLogin);
-        char[] dbPassword = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_PASSWORD);
         StringBuilder sbPassword = new StringBuilder(20);
         sbPassword.append(dbPassword);
         ProxyConnection proxyConnection;

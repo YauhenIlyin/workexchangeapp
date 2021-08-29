@@ -13,12 +13,13 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConnectionPool {
-    private int connectionPoolSize;
-    private final int MIN_CONNECTION_POOL_SIZE;
-    private final String PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE = "db.connection_pool_size";
-    private final String PROPERTY_KEY_WORD_MIN_CONNECTION_POOL_SIZE = "db.min_connection_pool_size";
+
     private static ConnectionPool instance;
     private static AtomicBoolean isInitialise = new AtomicBoolean(false);
+    private final String PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE = "db.connection_pool_size";
+    private final String PROPERTY_KEY_WORD_MIN_CONNECTION_POOL_SIZE = "db.min_connection_pool_size";
+    private final int MIN_CONNECTION_POOL_SIZE;
+    private int connectionPoolSize;
     private BlockingQueue<Connection> freeConnectionsQueue;
     private BlockingQueue<Connection> busyConnectionsQueue;
 
