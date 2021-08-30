@@ -12,9 +12,13 @@ import java.util.List;
 public class UserDaoImpl implements UserDao {
 
     private static final String USERS_TABLE_NAME = "users";
-    private static final String SPACE = " ";
-    private static final String SQL_EXPRESSION_FIND_ALL_USERS = "SELECT users.id, users.first_name, users.last_name, users.registration_date," +
-            "users.last_activity_date, users.e_mail, users.mobile_number, users.login, users.user_password, users.user_role_id, users.account_status_id";
+    private static final String SQL_EXPRESSION_FIND_ALL_USERS = """
+            SELECT users.id, users.first_name, users.last_name, users.registration_date, 
+            users.last_activity_date, users.e_mail, users.mobile_number, 
+            (SELECT user_role.role_description FROM user_role WHERE user_role.id = users.user_role_id ), 
+            (SELECT account_status.account_status_description FROM account_status WHERE account_status.id = users.account_status_id)
+            FROM users
+            """;
 
     @Override
     public List<User> findAll() throws DaoException {
@@ -36,8 +40,7 @@ public class UserDaoImpl implements UserDao {
         return false;
     }
 
-    @Override
-    public boolean createEntity(User user) throws DaoException {
+    public boolean createEntity(User user, char[] login, char[] password) throws DaoException {
         return false;
     }
 
@@ -64,10 +67,6 @@ public class UserDaoImpl implements UserDao {
     @Override
     public void close(Connection connection) throws DaoException {
         UserDao.super.close(connection);
-    }
-
-    private void buildStringQuery(CrudOperationName name, String fromTableName, String... columns) {
-        StringBuilder sb = new StringBuilder();
     }
 
 

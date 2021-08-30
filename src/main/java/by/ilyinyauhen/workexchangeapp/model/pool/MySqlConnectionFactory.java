@@ -3,14 +3,18 @@ package by.ilyinyauhen.workexchangeapp.model.pool;
 import by.ilyinyauhen.workexchangeapp.exception.DaoException;
 import by.ilyinyauhen.workexchangeapp.util.PropertyManager;
 import com.mysql.cj.jdbc.Driver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
 class MySqlConnectionFactory {
 
+    private static final Logger logger = LogManager.getLogger();
     private static AtomicBoolean isInitialise = new AtomicBoolean(false);
     private static MySqlConnectionFactory instance;
     private final String PROPERTY_KEY_WORD_DB_LOGIN = "db.login";

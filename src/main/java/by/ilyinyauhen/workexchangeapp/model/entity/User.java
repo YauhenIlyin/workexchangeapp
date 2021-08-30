@@ -1,7 +1,6 @@
 package by.ilyinyauhen.workexchangeapp.model.entity;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 
 public class User extends BaseEntity {
     private String firstName;
@@ -10,12 +9,10 @@ public class User extends BaseEntity {
     private LocalDate lastActivityDate;
     private String email;
     private String mobileNumber;
-    private String login;
-    private char[] password;
-    private long roleId;
-    private long accountStatusId;
+    private String role;
+    private String accountStatus;
 
-    public User(long id, String firstName, String lastName, LocalDate registrationDate, LocalDate lastActivityDate, String email, String mobileNumber, String login, char[] password, long roleId, long accountStatusId) {
+    public User(long id, String firstName, String lastName, LocalDate registrationDate, LocalDate lastActivityDate, String email, String mobileNumber, String login, char[] password, String role, String accountStatus) {
         super(id);
         this.firstName = firstName;
         this.lastName = lastName;
@@ -23,10 +20,8 @@ public class User extends BaseEntity {
         this.lastActivityDate = lastActivityDate;
         this.email = email;
         this.mobileNumber = mobileNumber;
-        this.login = login;
-        this.password = password;
-        this.roleId = roleId;
-        this.accountStatusId = accountStatusId;
+        this.role = role;
+        this.accountStatus = accountStatus;
     }
 
     public String getFirstName() {
@@ -77,36 +72,20 @@ public class User extends BaseEntity {
         this.mobileNumber = mobileNumber;
     }
 
-    public String getLogin() {
-        return login;
+    public String getRole() {
+        return role;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setRole(String role) {
+        this.role = role;
     }
 
-    public char[] getPassword() {
-        return password;
+    public String getAccountStatus() {
+        return accountStatus;
     }
 
-    public void setPassword(char[] password) {
-        this.password = password;
-    }
-
-    public long getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(long roleId) {
-        this.roleId = roleId;
-    }
-
-    public long getAccountStatusId() {
-        return accountStatusId;
-    }
-
-    public void setAccountStatusId(long accountStatusId) {
-        this.accountStatusId = accountStatusId;
+    public void setAccountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
     }
 
     @Override
@@ -116,16 +95,14 @@ public class User extends BaseEntity {
 
         User user = (User) o;
         if (this.getId() != user.getId()) return false;
-        if (roleId != user.roleId) return false;
-        if (accountStatusId != user.accountStatusId) return false;
+        if (role != user.role) return false;
+        if (accountStatus != user.accountStatus) return false;
         if (!firstName.equals(user.firstName)) return false;
         if (!lastName.equals(user.lastName)) return false;
         if (!registrationDate.equals(user.registrationDate)) return false;
         if (!lastActivityDate.equals(user.lastActivityDate)) return false;
         if (!email.equals(user.email)) return false;
-        if (!mobileNumber.equals(user.mobileNumber)) return false;
-        if (!login.equals(user.login)) return false;
-        return Arrays.equals(password, user.password);
+        return mobileNumber.equals(user.mobileNumber);
     }
 
     @Override
@@ -137,10 +114,8 @@ public class User extends BaseEntity {
         result = 31 * result + lastActivityDate.hashCode();
         result = 31 * result + email.hashCode();
         result = 31 * result + mobileNumber.hashCode();
-        result = 31 * result + login.hashCode();
-        result = 31 * result + Arrays.hashCode(password);
-        result = 31 * result + (int) (roleId ^ (roleId >>> 32));
-        result = 31 * result + (int) (accountStatusId ^ (accountStatusId >>> 32));
+        result = 31 * result + role.hashCode();
+        result = 31 * result + accountStatus.hashCode();
         return result;
     }
 
@@ -154,10 +129,9 @@ public class User extends BaseEntity {
                 ", lastActivityDate=" + lastActivityDate +
                 ", email='" + email + '\'' +
                 ", mobileNumber='" + mobileNumber + '\'' +
-                ", login='" + login + '\'' +
-                ", password=" + Arrays.toString(password) +
-                ", roleId=" + roleId +
-                ", accountStatusId=" + accountStatusId +
+                ", role=" + role +
+                ", accountStatus=" + accountStatus +
                 '}';
     }
+
 }
