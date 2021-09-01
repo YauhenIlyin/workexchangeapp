@@ -1,4 +1,4 @@
-package by.ilyinyauhen.workexchangeapp.model.evidence;
+package by.ilyinyauhen.workexchangeapp.model.evidence.databasenames;
 
 public class DatabaseTableNames {
 

@@ -12,6 +12,9 @@ public class User extends BaseEntity {
     private String role;
     private String accountStatus;
 
+    public User() {
+    }
+
     public User(long id, String firstName, String lastName, LocalDate registrationDate, LocalDate lastActivityDate, String email, String mobileNumber, String login, char[] password, String role, String accountStatus) {
         super(id);
         this.firstName = firstName;
@@ -86,6 +89,62 @@ public class User extends BaseEntity {
 
     public void setAccountStatus(String accountStatus) {
         this.accountStatus = accountStatus;
+    }
+
+    public InnerBuilder createInnerBuilder() {
+        return this.new InnerBuilder();
+    }
+
+    public class InnerBuilder {
+
+        private InnerBuilder() {
+        }
+
+        public InnerBuilder setId(long id) {
+            User.this.setId(id);
+            return this;
+        }
+
+        public InnerBuilder setFirstName(String firstName) {
+            User.this.firstName = firstName;
+            return this;
+        }
+
+        public InnerBuilder setLastName(String lastName) {
+            User.this.lastName = lastName;
+            return this;
+        }
+
+        public InnerBuilder setRegistrationDate(LocalDate registrationDate) {
+            User.this.registrationDate = registrationDate;
+            return this;
+        }
+
+        public InnerBuilder setLastActivityDate(LocalDate lastActivityDate) {
+            User.this.lastActivityDate = lastActivityDate;
+            return this;
+        }
+
+        public InnerBuilder setEmail(String email) {
+            User.this.email = email;
+            return this;
+        }
+
+        public InnerBuilder setMobileNumber(String mobileNumber) {
+            User.this.mobileNumber = mobileNumber;
+            return this;
+        }
+
+        public InnerBuilder setRole(String role) {
+            User.this.role = role;
+            return this;
+        }
+
+        public InnerBuilder setAccountStatus(String accountStatus) {
+            User.this.accountStatus = accountStatus;
+            return this;
+        }
+
     }
 
     @Override

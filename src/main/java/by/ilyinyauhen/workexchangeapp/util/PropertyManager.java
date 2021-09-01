@@ -14,7 +14,8 @@ public class PropertyManager {
 
 
     private PropertyManager() {
-        if (!FileValidator.validateTxtFile(DATABASE_PROPERTY_FILE_PATH)) {
+        FileValidator fileValidator = new FileValidator();
+        if (!fileValidator.validateTxtFile(DATABASE_PROPERTY_FILE_PATH)) {
             throw new RuntimeException("PropertyManager.class: constructor: database property file not exists or empty");
         }
         databaseResourceBundle = ResourceBundle.getBundle(DATABASE_PROPERTY_FILE_PATH);
