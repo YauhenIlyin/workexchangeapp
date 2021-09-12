@@ -1,6 +1,5 @@
 package by.ilyin.workexchange.model.dao.impl;
 
-
 import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.model.dao.AbstractDao;
 import by.ilyin.workexchange.model.dao.UserDao;

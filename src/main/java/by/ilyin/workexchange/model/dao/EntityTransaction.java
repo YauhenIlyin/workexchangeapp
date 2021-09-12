@@ -1,6 +1,5 @@
-package by.ilyin.workexchange.model.dao.transaction;
+package by.ilyin.workexchange.model.dao;
 
-import by.ilyin.workexchange.model.dao.AbstractDao;
 import by.ilyin.workexchange.model.pool.ConnectionPool;
 import org.apache.logging.log4j.Logger;
 
@@ -9,7 +8,7 @@ import java.sql.SQLException;
 
 public class EntityTransaction {
 
-    public static Logger logger;
+    public static Logger logger; //todo
     private Connection connection;
 
     public void initTransaction(AbstractDao dao, AbstractDao... daoArr) {
@@ -53,6 +52,5 @@ public class EntityTransaction {
         }
 
     }
-
 
 }
