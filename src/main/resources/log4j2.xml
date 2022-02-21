@@ -1,0 +1,47 @@
+<?xml  version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="85400" status="ERROR">
+    <Property>
+        <property name="pattern_log_txt_file">
+            %d{yyyy-MM-dd HH:mm:ss:SSS} [%r] [%t] %-5level %logger{7}: %msg%n
+        </property>
+        <property name="pattern_sys_console">
+            %d{HH:mm:ss:SSS} [%t] %-5level %logger{7}: %msg%n
+        </property>
+        <property name="pattern_txt_file_archive_name">
+            logs/$${date:yyyy-MM}/weapp-%d{MM-dd-yyyy}-%i.log.zip
+        </property>
+        <property name="pattern_current_date">
+            %d{yyyy_MM_dd HH_mm_ss}
+        </property>
+        <property name="log_dir_name">
+            logs
+        </property>
+        <property name="log_file_name">
+            weapp.log
+        </property>
+    </Property>
+    <Appenders>
+        <Console name="SystemConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${pattern_sys_console}"/>
+        </Console>
+        <RollingFile
+                name="RollingTxtFileAppender"
+                fileName="$${log_dir_name}/{log_file_name}"
+                filePattern="${pattern_log_txt_file}"
+                ignoreExceptions="false">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss:SSS} [%r] [%t] %-5level %logger{7}: %msg%n</Pattern>
+            </PatternLayout>
+        </RollingFile>
+        <Policies>
+            <SizeBasedTriggeringPolicy size="15MB"/>
+        </Policies>
+        <DefaultRolloverStrategy max="12"/>
+    </Appenders>
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="RollingTxtFileAppender"/>
+            <AppenderRef ref="SystemConsoleAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

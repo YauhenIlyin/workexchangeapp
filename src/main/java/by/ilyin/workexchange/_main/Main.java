@@ -49,6 +49,7 @@ public class Main {
          */
         EmailManager emailManager = new EmailManager();
         emailManager.sendMail("prog.jekylin@gmail.com");
+
     }
 
 }

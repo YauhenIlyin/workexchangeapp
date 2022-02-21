@@ -10,12 +10,14 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ConnectionPool {
 
     private static ConnectionPool instance;
-    private static AtomicBoolean isInitialise = new AtomicBoolean(false);
+    private static boolean isInitialise = false;
+    private static Lock lock = new ReentrantLock();
     private final String PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE = "db.connection_pool_size";
     private final String PROPERTY_KEY_WORD_MIN_CONNECTION_POOL_SIZE = "db.min_connection_pool_size";
     private final int MIN_CONNECTION_POOL_SIZE;
@@ -23,7 +25,7 @@ public class ConnectionPool {
     private BlockingQueue<Connection> freeConnectionsQueue;
     private BlockingQueue<Connection> busyConnectionsQueue;
 
-    private ConnectionPool() { //todo приоставка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
+    private ConnectionPool() { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
         PropertyManager propertyManager = PropertyManager.getInstance();
         char[] connectionPoolSizeArr = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
         StringBuilder sbConnectionCount = new StringBuilder();
@@ -61,9 +63,15 @@ public class ConnectionPool {
     }
 
     public static ConnectionPool getInstance() {
-        while (instance == null) {
-            if (isInitialise.compareAndSet(false, true)) {
-                instance = new ConnectionPool();
+        if (instance == null) {
+            lock.lock();
+            try {
+                if (!isInitialise) {
+                    instance = new ConnectionPool();
+                    isInitialise = true;
+                }
+            } finally {
+                lock.unlock();
             }
         }
         return instance;

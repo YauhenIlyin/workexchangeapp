@@ -3,7 +3,7 @@ package by.ilyin.workexchange.util.email;
 import jakarta.mail.Authenticator;
 import jakarta.mail.PasswordAuthentication;
 
-public class EmailAuthenticator extends Authenticator {
+class EmailAuthenticator extends Authenticator {
 
     private String login; //todo char[]
     private String password; //todo char[]

@@ -20,9 +20,9 @@
     <input type="text" name="login" value=""/>
     <br/>
     <p>password</p>
-    <input type="text" name="password1" value=""/>
+    <input type="text" name="password_first" value=""/>
     <br/>
-    <input type="text" name="password2" value=""/>
+    <input type="text" name="password_second" value=""/>
     <br/>
     <p>first name</p>
     <input type="text" name="first_name" value=""/>

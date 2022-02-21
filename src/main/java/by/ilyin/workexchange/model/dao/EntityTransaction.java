@@ -15,6 +15,11 @@ public class EntityTransaction {
         if (connection == null) {
             connection = ConnectionPool.getInstance().takeConnection();
         }
+        try {
+            connection.setAutoCommit(false);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();//todo
+        }
         dao.setConnection(connection);
         for (AbstractDao currentDao : daoArr) {
             currentDao.setConnection(connection);
@@ -24,11 +29,6 @@ public class EntityTransaction {
     public void initSingleOperation(AbstractDao dao) {
         if (connection == null) {
             connection = ConnectionPool.getInstance().takeConnection();
-        }
-        try {
-            connection.setAutoCommit(false);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();//todo
         }
         dao.setConnection(connection);
     }
