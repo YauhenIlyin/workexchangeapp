@@ -14,7 +14,7 @@ public class DatabaseColumnNames {
     public static final String USERS_USER_ROLE_ID = "user_role_id";
     public static final String USERS_ACCOUNT_STATUS_ID = "account_status_id";
     //account_status
-    //public static final String ID = "id"; //todo
+    //public static final String ID = "id"; //todo account_id
     public static final String ACCOUNT_STATUS_DESCRIPTOR = "account_status_descriptor";
     //user_role
     //public static final String ID = "id"; //todo

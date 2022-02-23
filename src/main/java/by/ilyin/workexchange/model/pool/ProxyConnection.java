@@ -34,12 +34,12 @@ class ProxyConnection implements Connection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
+    public void setAutoCommit(boolean autoCommit) throws SQLException { //todo  в чем смысл?
         connection.setAutoCommit(autoCommit);
     }
 
     @Override
-    public boolean getAutoCommit() throws SQLException {
+    public boolean getAutoCommit() throws SQLException { //todo в чем смысл ?
         return connection.getAutoCommit();
     }
 

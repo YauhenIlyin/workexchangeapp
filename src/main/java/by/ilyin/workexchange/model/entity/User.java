@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
  * <b>email</b>
  * <b>mobileNumber</b>
  * <b>role</b>
- * <b>accountStatus</b></>
- * corresponding to the database table <b>users<b/>
+ * <b>accountStatus</b>
+ * corresponding to the database table <b>users</b>
  *
  * @author IlyinYauhen
  * @version 1.0
@@ -71,7 +71,7 @@ public class User extends BaseEntity {
     /**
      * Constructor to create an instance with parameters
      *
-     * @param id                   - user entity id passed to super class "BaseEntity"
+     * @param id                   - user entity id passed to super abstract class "BaseEntity"
      * @param firstName            - user first name
      * @param lastName             - user last name
      * @param registrationDateTime - time and date of user registration
@@ -384,7 +384,6 @@ public class User extends BaseEntity {
     public String toString() {
         StringBuilder sb = new StringBuilder(OPTIMAL_STRING_BUILDER_CAPACITY);
         sb.append("User{")
-                
                 .append("id='").append(this.getId())
                 .append('\'').append(",firstName='").append(firstName)
                 .append('\'').append(", lastName='").append(lastName)

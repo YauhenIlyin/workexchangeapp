@@ -1,6 +1,7 @@
 package by.ilyin.workexchange.model.pool;
 
 import by.ilyin.workexchange.exception.DaoException;
+import by.ilyin.workexchange.exception.WorkExchangeAppException;
 import by.ilyin.workexchange.util.PropertyManager;
 
 import java.sql.Connection;
@@ -25,7 +26,7 @@ public class ConnectionPool {
     private BlockingQueue<Connection> freeConnectionsQueue;
     private BlockingQueue<Connection> busyConnectionsQueue;
 
-    private ConnectionPool() { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
+    private ConnectionPool() throws WorkExchangeAppException { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
         PropertyManager propertyManager = PropertyManager.getInstance();
         char[] connectionPoolSizeArr = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
         StringBuilder sbConnectionCount = new StringBuilder();
@@ -62,7 +63,7 @@ public class ConnectionPool {
         }
     }
 
-    public static ConnectionPool getInstance() {
+    public static ConnectionPool getInstance() throws WorkExchangeAppException {
         if (instance == null) {
             lock.lock();
             try {

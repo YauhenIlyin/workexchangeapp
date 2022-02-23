@@ -1,6 +1,7 @@
 package by.ilyin.workexchange.model.pool;
 
 import by.ilyin.workexchange.exception.DaoException;
+import by.ilyin.workexchange.exception.WorkExchangeAppException;
 import by.ilyin.workexchange.util.PropertyManager;
 import com.mysql.cj.jdbc.Driver;
 import org.apache.logging.log4j.LogManager;
@@ -26,7 +27,7 @@ class MySqlConnectionFactory {
     private char[] dbLogin;
     private char[] dbPassword;
 
-    private MySqlConnectionFactory() throws DaoException {
+    private MySqlConnectionFactory() throws DaoException, WorkExchangeAppException {
         propertyManager = PropertyManager.getInstance();
         dbAddress = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_ADDRESS);
         dbPort = propertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_PORT);
@@ -41,7 +42,7 @@ class MySqlConnectionFactory {
         }
     }
 
-    public static MySqlConnectionFactory getInstance() throws DaoException {
+    public static MySqlConnectionFactory getInstance() throws DaoException, WorkExchangeAppException {
         if (instance == null) {
             instance = new MySqlConnectionFactory();
         }
