@@ -10,7 +10,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
- * Utility class for connecting .property files via a resource bundle.
+ * Utility class for connecting database .property files via a resource bundle.
  * <b>instance</b>
  * <b>DATABASE_PROPERTY_FILE_PATH</b>
  * <b>databaseResourceBundle</b>
@@ -18,12 +18,11 @@ import java.util.ResourceBundle;
  * @author IlyinYauhen
  * @version 1.0
  */
-    class DatabasePropertyManager {
-
+class DatabasePropertyManager {
     /**
      * A field containing an instance of the DatabasePropertyManager class.
      *
-     * @see DatabasePropertyManager#DatabasePropertyManager()
+     * @see DatabasePropertyManager#DatabasePropertyManager().
      */
     private static DatabasePropertyManager instance;
     /**
@@ -45,12 +44,12 @@ import java.util.ResourceBundle;
     private DatabasePropertyManager() throws DaoException {
         FileValidator fileValidator = new FileValidator();
         if (!fileValidator.validateTxtFile(DATABASE_PROPERTY_FILE_PATH)) {
-            String message = "DatabasePropertyManager() : database .property file not exists.";
+            String message = "Database .property file not exists.";
             logger.log(Level.ERROR, message);
             throw new DaoException(message);
         }
         databaseResourceBundle = ResourceBundle.getBundle(DATABASE_PROPERTY_FILE_PATH);
-        logger.log(Level.INFO, "Property files connected successfully.");
+        logger.log(Level.INFO, "Database property file connected successfully.");
     }
 
     /**

@@ -29,10 +29,13 @@ public class ConnectionPool {
     private int minConnectionPoolSize;
     private int connectionPoolSize;
     private int spareConnectionPoolSize;
+    private int ATTEMPT_WAIT_BE_RELEASED_CONNECTIONS = 40;
+    private int SLEEP_TIME_WAIT_BE_RELEASED_CONNECTIONS_IN_ONE_ATTEMPT = 250;
+    private static final int DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME = 3;
     private static final int DEFAULT_CONNECTION_POOL_SIZE = 14;
     private static final int DEFAULT_MIN_CONNECTION_POOL_SIZE = 8;
     private static final int DEFAULT_SPARE_CONNECTION_POOL_SIZE = 8;
-    private static final int MIN_EFFECTIVE_CONNECTION_POOL = 8;
+    private static final int DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE = 4;
 
     private BlockingQueue<Connection> freeConnectionsQueue;
     private BlockingQueue<Connection> busyConnectionsQueue;
@@ -52,79 +55,6 @@ public class ConnectionPool {
         if (this.connectionPoolSize < minConnectionPoolSize) { //todo
             throw new RuntimeException("ConnectionPool.class: constructor(): connection creating error. less than 4"); //todo
         }
-    }
-
-    private void initializeConnectionPoolSizeParameters() throws DaoException {
-        DatabasePropertyManager databasePropertyManager = DatabasePropertyManager.getInstance();
-        char[] connectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
-        StringBuilder sbConnectionCount = new StringBuilder();
-        sbConnectionCount.append(connectionPoolSizeArr);
-        connectionPoolSize = Integer.parseInt(sbConnectionCount.toString());
-
-        char[] minConnectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_MIN_CONNECTION_POOL_SIZE);
-        StringBuilder sbMinConnectionCount = new StringBuilder();
-        sbMinConnectionCount.append(minConnectionPoolSizeArr);
-        minConnectionPoolSize = Integer.parseInt(sbMinConnectionCount.toString());
-
-        char[] spareConnectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_SPARE_CONNECTION_POOL_SIZE);
-        StringBuilder sbSpareConnectionCount = new StringBuilder();
-        sbSpareConnectionCount.append(spareConnectionPoolSizeArr);
-        spareConnectionPoolSize = Integer.parseInt(sbConnectionCount.toString());
-
-        if (connectionPoolSize < minConnectionPoolSize || minConnectionPoolSize < MIN_EFFECTIVE_CONNECTION_POOL || spareConnectionPoolSize < MIN_EFFECTIVE_CONNECTION_POOL) {
-            logger.log(Level.WARN, "Received incorrect connection pool sizes from the config.properties file. Default values used.");
-            connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
-            minConnectionPoolSize = DEFAULT_MIN_CONNECTION_POOL_SIZE;
-            spareConnectionPoolSize = DEFAULT_SPARE_CONNECTION_POOL_SIZE;
-        }
-    }
-
-    private void initialiseConnectionQueue(BlockingQueue currentConnectionsQueue, int size) {
-        currentConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
-        MySqlConnectionFactory mySqlConnectionFactory;
-        try {
-            mySqlConnectionFactory = MySqlConnectionFactory.getInstance();
-        } catch (DaoException e) {
-            e.printStackTrace();//todo
-            throw new RuntimeException("Can't create MySqlConnectionFactory instance..");
-        }
-        Connection connection;
-        for (int currentConnectionCount = 0; currentConnectionCount < this.connectionPoolSize; ++currentConnectionCount) {
-            connection = null;
-            try {
-                connection = mySqlConnectionFactory.getProxyConnection();
-            } catch (DaoException e) {
-                e.printStackTrace();//todo
-                --this.connectionPoolSize; //todo
-            }
-            if (connection != null) {
-                freeConnectionsQueue.add(connection);
-            }
-        }
-    }
-
-
-    public void closeAndUpdateConnectionsInPool() {
-        isConnectionPoolInService.set(true);
-        Thread.sleep(500);
-        boolean isAllConnectionsFree = false;
-
-
-        MySqlConnectionFactory mySqlConnectionFactory = null;
-        Connection connection;
-        connection = mySqlConnectionFactory.getProxyConnection();
-        int numberCreationAttempts = 5;
-        int attemptNumber = 0;
-        while (attemptNumber < numberCreationAttempts) {
-            if (freeConnectionsQueue.size() < minConnectionPoolSize) {
-                int lostConnectionCount = minConnectionPoolSize - freeConnectionsQueue.size();
-                while (lostConnectionCount > 0) {
-
-                }
-            }
-            ++attemptNumber;
-        }
-
     }
 
     public static ConnectionPool getInstance() throws WorkExchangeAppException {
@@ -169,21 +99,133 @@ public class ConnectionPool {
         return false;
     }
 
-    public void destroyConnectionPool() throws DaoException {
-        if (freeConnectionsQueue.size() == connectionPoolSize) {
-            for (int connectionCount = 0; connectionCount < connectionPoolSize; ++connectionCount) {
+    private void initializeConnectionPoolSizeParameters() throws DaoException {
+        DatabasePropertyManager databasePropertyManager = DatabasePropertyManager.getInstance();
+        char[] connectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
+        StringBuilder sbConnectionCount = new StringBuilder();
+        sbConnectionCount.append(connectionPoolSizeArr);
+        connectionPoolSize = Integer.parseInt(sbConnectionCount.toString());
+
+        char[] minConnectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_MIN_CONNECTION_POOL_SIZE);
+        StringBuilder sbMinConnectionCount = new StringBuilder();
+        sbMinConnectionCount.append(minConnectionPoolSizeArr);
+        minConnectionPoolSize = Integer.parseInt(sbMinConnectionCount.toString());
+
+        char[] spareConnectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_SPARE_CONNECTION_POOL_SIZE);
+        StringBuilder sbSpareConnectionCount = new StringBuilder();
+        sbSpareConnectionCount.append(spareConnectionPoolSizeArr);
+        spareConnectionPoolSize = Integer.parseInt(sbConnectionCount.toString());
+
+        if (connectionPoolSize < minConnectionPoolSize || minConnectionPoolSize < DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE || spareConnectionPoolSize < DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE) {
+            logger.log(Level.WARN, "Received incorrect connection pool sizes from the config.properties file. Default values used.");
+            connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
+            minConnectionPoolSize = DEFAULT_MIN_CONNECTION_POOL_SIZE;
+            spareConnectionPoolSize = DEFAULT_SPARE_CONNECTION_POOL_SIZE;
+        }
+    }
+
+
+    private BlockingQueue<Connection> initialiseConnectionQueue(BlockingQueue<Connection> currentConnectionsQueue, int size) throws DaoException {
+        if (currentConnectionsQueue == null) {
+            currentConnectionsQueue = new LinkedBlockingQueue<>(size);
+        }
+        MySqlConnectionFactory mySqlConnectionFactory;
+        mySqlConnectionFactory = MySqlConnectionFactory.getInstance();
+        Connection connection;
+        int initialisationCounter = 0;
+        while (initialisationCounter < DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME) {
+            int currentMaxSize = size - currentConnectionsQueue.size();
+            for (int currentConnectionCount = 0; currentConnectionCount < currentMaxSize; ++currentConnectionCount) {
+                connection = null;
                 try {
-                    ProxyConnection proxyConnection = (ProxyConnection) freeConnectionsQueue.take();
-                    proxyConnection.reallyClose();
-                } catch (InterruptedException | SQLException e) {
-                    e.printStackTrace();//todo
+                    connection = mySqlConnectionFactory.getProxyConnection();
+                } catch (DaoException cause) {
+                    logger.log(Level.WARN, "Connection number " + (currentConnectionCount + 1) + " is not created.");
+                    --currentMaxSize;
+                }
+                if (connection != null) {
+                    freeConnectionsQueue.add(connection);
                 }
             }
+            if (currentConnectionsQueue.size() == size) {
+                break;
+            }
+        }
+        if (currentConnectionsQueue.size() < DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE) {
+            String message = "Unable to initialize connection pool. The queue has the wrong number of connections.";
+            logger.log(Level.ERROR, message);
+            throw new RuntimeException(message);
+        }
+        return currentConnectionsQueue;
+    }
+
+    private void clearMainConnectionQueue() throws DaoException {
+        initializeConnectionPoolSizeParameters();
+        initialiseConnectionQueue(spareFreeConnectionsQueue, spareConnectionPoolSize);
+        spareBusyConnectionsQueue = new LinkedBlockingQueue<Connection>(spareConnectionPoolSize);
+        BlockingQueue<Connection> freeQueueContainer = freeConnectionsQueue;
+        BlockingQueue<Connection> busyQueueContainer = busyConnectionsQueue;
+        int currentAttemptWaitBeReleasedConnections = ATTEMPT_WAIT_BE_RELEASED_CONNECTIONS;
+        isConnectionPoolInService.set(true);
+        while (busyConnectionsQueue.size() > 0 && currentAttemptWaitBeReleasedConnections > 0) {
+            try {
+                --currentAttemptWaitBeReleasedConnections
+                Thread.sleep(SLEEP_TIME_WAIT_BE_RELEASED_CONNECTIONS_IN_ONE_ATTEMPT); // todo ждем освобождения коннекшенов(ожидаем окончания сложных операций) ,можно ли так
+            } catch (InterruptedException cause) {
+                logger.log(Level.WARN, "sleep() get InterruptedException.");
+            }
+        }
+        freeConnectionsQueue = spareFreeConnectionsQueue;
+        busyConnectionsQueue = spareBusyConnectionsQueue;
+        isConnectionPoolInService.set(false);
+
+
+        boolean isAllConnectionsFree = false;
+
+
+        MySqlConnectionFactory mySqlConnectionFactory = null;
+        Connection connection;
+        connection = mySqlConnectionFactory.getProxyConnection();
+        int numberCreationAttempts = 5;
+        int attemptNumber = 0;
+        while (attemptNumber < numberCreationAttempts) {
+            if (freeConnectionsQueue.size() < minConnectionPoolSize) {
+                int lostConnectionCount = minConnectionPoolSize - freeConnectionsQueue.size();
+                while (lostConnectionCount > 0) {
+
+                }
+            }
+            ++attemptNumber;
+        }
+
+    }
+
+    public void destroyConnectionPool() throws DaoException {
+        if (isConnectionPoolInService.get()) {
+            serviceLock.lock();
+        }
+        if (freeConnectionsQueue.size() == connectionPoolSize) {
+            closeClearConnectionsInQueue(freeConnectionsQueue);
             deregisterDriver();
             instance = null;
         } else {
             throw new DaoException("ConnectionPool.class: destroyConnectionPool(): not all connections is free");//todo
         }
+    }
+
+    private void closeClearConnectionsInQueue(BlockingQueue<Connection> connectionQueue) {
+        if (connectionQueue != null) {
+            int queueSize = connectionQueue.size();
+            for (int connectionCount = 0; connectionCount < queueSize; ++connectionCount) {
+                try {
+                    ProxyConnection proxyConnection = (ProxyConnection) freeConnectionsQueue.take();
+                    proxyConnection.reallyClose();
+                } catch (InterruptedException | SQLException e) {
+                    logger.log(Level.WARN, "Error while closing connection.");
+                }
+            }
+        }
+        connectionQueue = null;
     }
 
     private void deregisterDriver() throws DaoException {
