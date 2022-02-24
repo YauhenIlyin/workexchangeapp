@@ -1,6 +1,6 @@
-package by.ilyin.workexchange.util;
+package by.ilyin.workexchange.model.pool;
 
-import by.ilyin.workexchange.exception.WorkExchangeAppException;
+import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.validator.FileValidator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -18,18 +18,18 @@ import java.util.ResourceBundle;
  * @author IlyinYauhen
  * @version 1.0
  */
-public class PropertyManager {
+    class DatabasePropertyManager {
 
     /**
-     * A field containing an instance of the PropertyManager class.
+     * A field containing an instance of the DatabasePropertyManager class.
      *
-     * @see PropertyManager#PropertyManager()
+     * @see DatabasePropertyManager#DatabasePropertyManager()
      */
-    private static PropertyManager instance;
+    private static DatabasePropertyManager instance;
     /**
      * Default database .property file relative path constant field.
      */
-    private final String DATABASE_PROPERTY_FILE_PATH = "data/database/config.properties";
+    private final String DATABASE_PROPERTY_FILE_PATH = "data/config.properties";
     /**
      * Field containing ResourceBundle object for accessing database .property file.
      */
@@ -38,31 +38,31 @@ public class PropertyManager {
     private static Logger logger = LogManager.getLogger();
 
     /**
-     * Private constructor to create a singleton PropertyManager object.
+     * Private constructor to create a singleton DatabasePropertyManager object.
      *
-     * @throws WorkExchangeAppException
+     * @throws DaoException
      */
-    private PropertyManager() throws WorkExchangeAppException {
+    private DatabasePropertyManager() throws DaoException {
         FileValidator fileValidator = new FileValidator();
         if (!fileValidator.validateTxtFile(DATABASE_PROPERTY_FILE_PATH)) {
-            String message = "PropertyManager() : database .property file not exists.";
+            String message = "DatabasePropertyManager() : database .property file not exists.";
             logger.log(Level.ERROR, message);
-            throw new WorkExchangeAppException(message);
+            throw new DaoException(message);
         }
         databaseResourceBundle = ResourceBundle.getBundle(DATABASE_PROPERTY_FILE_PATH);
         logger.log(Level.INFO, "Property files connected successfully.");
     }
 
     /**
-     * Function to create and get an instance of a singleton PropertyManager class {@link PropertyManager#instance}.
+     * Function to create and get an instance of a singleton DatabasePropertyManager class {@link DatabasePropertyManager#instance}.
      *
-     * @return instance - PropertyManager singleton instance.
-     * @throws WorkExchangeAppException
+     * @return instance - DatabasePropertyManager singleton instance.
+     * @throws DaoException
      */
-    public static PropertyManager getInstance() throws WorkExchangeAppException {
+    public static DatabasePropertyManager getInstance() throws DaoException {
         if (instance == null) {
-            instance = new PropertyManager();
-            logger.log(Level.INFO, "Property manager instance successfully created.");
+            instance = new DatabasePropertyManager();
+            logger.log(Level.INFO, "DatabasePropertyManager instance successfully created.");
         }
         return instance;
     }
@@ -70,16 +70,17 @@ public class PropertyManager {
     /**
      * @param propertyName - keyword for property value.
      * @return propertyValue - string value from property file corresponding to the keyword as char[].
+     * @throws DaoException
      */
-    public char[] getDatabasePropertyValue(String propertyName) throws WorkExchangeAppException {
+    public char[] getDatabasePropertyValue(String propertyName) throws DaoException {
         //Locale locale = new Locale("en", "US"); //todo
         char[] propertyValue = null;
         try {
             propertyValue = databaseResourceBundle.getString(propertyName).toCharArray();
         } catch (MissingResourceException | NullPointerException cause) {
-            String message = "PropertyManager.getDatabasePropertyValue : value is not found for keyword | propertyName string is null";
+            String message = "Value is not found for keyword or propertyName string is null";
             logger.log(Level.ERROR, message);
-            throw new WorkExchangeAppException(message, cause);
+            throw new DaoException(message, cause);
         }
         return propertyValue;
     }

@@ -14,7 +14,7 @@ public class RegisterAccountCommand implements Command {
         String secondName = request.getParameter(RequestParameterName.REGISTRATION_SECOND_NAME);
         String eMail = request.getParameter(RequestParameterName.REGISTRATION_E_MAIL);
         String mobileNumber = request.getParameter(RequestParameterName.REGISTRATION_MOBILE_NUMBER);
-
+        request.
     }
 
 }

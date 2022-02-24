@@ -1,5 +1,10 @@
 package by.ilyin.workexchange.model.pool;
 
+import by.ilyin.workexchange.exception.WorkExchangeAppException;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
@@ -8,6 +13,7 @@ import java.util.concurrent.Executor;
 class ProxyConnection implements Connection {
 
     private Connection connection;
+    private static Logger logger = LogManager.getLogger();
 
     ProxyConnection(Connection connection) {
         this.connection = connection;
@@ -55,8 +61,15 @@ class ProxyConnection implements Connection {
 
     @Override
     public void close() {
-        ConnectionPool connectionPool = ConnectionPool.getInstance();
-        connectionPool.relieveConnection(connection);
+        ConnectionPool connectionPool;
+        try {
+            connectionPool = ConnectionPool.getInstance();
+            connectionPool.relieveConnection(connection);
+        } catch (WorkExchangeAppException e) {
+            logger.log(Level.ERROR, e.getMessage());
+            e.printStackTrace();//todo
+        }
+        //todo need log
     }
 
     void reallyClose() throws SQLException {

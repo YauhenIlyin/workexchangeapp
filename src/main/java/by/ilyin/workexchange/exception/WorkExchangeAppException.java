@@ -13,4 +13,5 @@ public class WorkExchangeAppException extends Exception {
     public WorkExchangeAppException(Throwable cause) {
         super(cause);
     }
+
 }
