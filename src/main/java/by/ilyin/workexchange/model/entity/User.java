@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 /**
  * User entity class with fields
+ * <b>id</b>
  * <b>firstName</b>
  * <b>lastName</b>
  * <b>registrationDateTime</b>
@@ -26,6 +27,10 @@ public class User extends BaseEntity {
      */
     private static final int OPTIMAL_STRING_BUILDER_CAPACITY = 220; //todo можно ли так размещать
 
+    /**
+     * User id field
+     */
+    private long id;
     /**
      * User first name field
      */
@@ -63,7 +68,7 @@ public class User extends BaseEntity {
     /**
      * Constructor to create an instance without parameters
      *
-     * @see User#User(long, String, String, LocalDateTime, LocalDateTime, String, String, String, char[], String, String)
+     * @see User#User(long, String, String, LocalDateTime, LocalDateTime, String, String, String, char[], String, String) //todo char[]
      */
     public User() {
     }
@@ -71,7 +76,7 @@ public class User extends BaseEntity {
     /**
      * Constructor to create an instance with parameters
      *
-     * @param id                   - user entity id passed to super abstract class "BaseEntity"
+     * @param id                   - user entity id
      * @param firstName            - user first name
      * @param lastName             - user last name
      * @param registrationDateTime - time and date of user registration
@@ -84,7 +89,7 @@ public class User extends BaseEntity {
      * @param accountStatus        - user account status in the application
      */
     public User(long id, String firstName, String lastName, LocalDateTime registrationDateTime, LocalDateTime lastActivityDateTime, String email, String mobileNumber, String login, char[] password, String role, String accountStatus) {
-        super(id);
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.registrationDateTime = registrationDateTime;
@@ -93,6 +98,24 @@ public class User extends BaseEntity {
         this.mobileNumber = mobileNumber;
         this.role = role;
         this.accountStatus = accountStatus;
+    }
+
+    /**
+     * Field value getter function {@link User#id}
+     *
+     * @return returns the user entity id
+     */
+    public long getId() {
+        return id;
+    }
+
+    /**
+     * User entity id setting function {@link User#id}
+     *
+     * @param id - user entity id
+     */
+    public void setId(long id) {
+        this.id = id;
     }
 
     /**
@@ -352,8 +375,12 @@ public class User extends BaseEntity {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         User user = (User) o;
         return this.getId() == user.getId() &&
                 this.role == user.role &&
@@ -368,7 +395,7 @@ public class User extends BaseEntity {
 
     @Override
     public int hashCode() {
-        int result = (int) this.getId(); //todo
+        int result = (int) id; //todo  проверить варианти приведения long к int 0, - ?? и т.д.
         result = 31 * result + firstName.hashCode();
         result = 31 * result + lastName.hashCode();
         result = 31 * result + registrationDateTime.hashCode();
@@ -384,7 +411,7 @@ public class User extends BaseEntity {
     public String toString() {
         StringBuilder sb = new StringBuilder(OPTIMAL_STRING_BUILDER_CAPACITY);
         sb.append("User{")
-                .append("id='").append(this.getId())
+                .append("id='").append(id)
                 .append('\'').append(",firstName='").append(firstName)
                 .append('\'').append(", lastName='").append(lastName)
                 .append('\'').append(", registrationDateTime=").append(registrationDateTime)

@@ -1,21 +1,13 @@
 package by.ilyin.workexchange.model.entity;
 
-public abstract class BaseEntity {
-    private long id;
+import java.io.Serializable;
 
-    public BaseEntity(long id) {
-        this.id = id;
-    }
+public abstract class BaseEntity implements Cloneable, Serializable { //todo реализовать интерфейсы
+
 
     public BaseEntity() {
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
+    //todo equals hashcode ???
 
 }

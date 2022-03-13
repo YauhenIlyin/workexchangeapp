@@ -42,9 +42,14 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             (SELECT account_status.account_status_id FROM account_status WHERE account_status_description = ?)
             );
             """; //todo
+    /*
     private static final String PS_SQL_EXPRESSION_VALIDATE_NEW_LOGIN = """
             SELECT count(*) FROM users WHERE users.login = ?;
             """;
+    */
+    private static final String CS_SQL_EXPRESSION_IS_VALID_NEW_ACCOUNT_LOGIN = "{call isValidNewAccountLogin(?)}";
+    private static final String CS_SQL_EXPRESSION_ADD_NEW_PASS_BY_USER_LOGIN = "{call addNewPassByUserLogin(?,?)}";
+    //private Statement statement = null; //todo and close()
 
     @Override
     public List<User> findAll() { //todo optional ?
@@ -72,10 +77,12 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+        //todo statement.close() resultSet.close() ???
         return userList.get(0); //todo optional
 
     }
 
+    /*
     public boolean validateAccountLogin(char[] login) {
         ResultSet resultSet;
         int numberOfMatches = 0;
@@ -88,6 +95,23 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             throwables.printStackTrace(); //todo
         }
         return numberOfMatches == 0;
+    }
+     */
+    //todo почистить код
+    public boolean validateAccountLogin(char[] login) {
+        CallableStatement callableStatement;
+        boolean isValidLogin = false;
+        StringBuilder sb = new StringBuilder(login);
+        try {
+            callableStatement = connection.prepareCall(CS_SQL_EXPRESSION_IS_VALID_NEW_ACCOUNT_LOGIN);
+            callableStatement.setString(1, sb.toString());
+            callableStatement.registerOutParameter(1, Types.BOOLEAN);
+            callableStatement.execute();
+            isValidLogin = callableStatement.getBoolean(1);
+        } catch (SQLException cause) {
+            //todo исключение
+        }
+        return isValidLogin;
     }
 
 
@@ -157,16 +181,21 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     @Override
-    public void close(Statement statement) throws DaoException {
+    public void closeStatement(Statement statement) throws DaoException {
         UserDao.super.close(statement);
     }
 
     @Override
-    public void close(Connection connection) throws DaoException {
+    public void closeConnection(Connection connection) throws DaoException {
         UserDao.super.close(connection);
     }
 
-    private ArrayList<User> buildUserListFromResultSet(ResultSet resultSet) throws SQLException {
+    @Override
+    public void setConnection(Connection connection) throws DaoException {
+
+    }
+
+    private ArrayList<User> buildEntityListFromResultSet(ResultSet resultSet) throws DaoException {
         ArrayList<User> userList = new ArrayList<>();
         while (resultSet.next()) {
             User user = new User();

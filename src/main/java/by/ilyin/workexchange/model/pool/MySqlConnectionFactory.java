@@ -20,6 +20,8 @@ class MySqlConnectionFactory {
     private final String PROPERTY_KEY_WORD_DB_PORT = "db.port";
     private final String PROPERTY_KEY_WORD_DB_NAME = "db.name";
     private DatabasePropertyManager databasePropertyManager;
+    //todo сделать так,чтобы после заполнения пула char[]  очищались,
+    //todo а при обновлении снова инициализировались
     private char[] dbAddress;
     private char[] dbPort;
     private char[] dbName;
