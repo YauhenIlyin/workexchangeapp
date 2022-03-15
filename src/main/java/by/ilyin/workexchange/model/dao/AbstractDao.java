@@ -1,7 +1,5 @@
 package by.ilyin.workexchange.model.dao;
 
-import by.ilyin.workexchange.exception.DaoException;
-import by.ilyin.workexchange.model.entity.BaseEntity;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class AbstractDao<T extends BaseEntity> {
+public class AbstractDao {
 
     private static Logger logger = LogManager.getLogger();
     protected Connection connection;
@@ -19,7 +17,7 @@ public class AbstractDao<T extends BaseEntity> {
         this.connection = connection;
     }
 
-    public void closeStatement(Statement statement) throws DaoException {
+    public void closeStatement(Statement statement) {
         if (statement == null) {
             logger.log(Level.WARN, "Statement closing isn't possible. Statement is null.");
         } else {
@@ -31,9 +29,12 @@ public class AbstractDao<T extends BaseEntity> {
         }
     }
 
-    @Override
-    public void closeConnection(Connection connection) throws DaoException {
-        UserDao.super.close(connection);
+    public void closeConnection(Connection connection) {
+        try {
+            connection.close();
+        } catch (SQLException cause) {
+            logger.log(Level.ERROR, "Can't close the connection.", cause);
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package by.ilyin.workexchange.model.dao;
 
+import by.ilyin.workexchange.model.dao.AbstractDao;
 import by.ilyin.workexchange.model.pool.ConnectionPool;
 import org.apache.logging.log4j.Logger;
 

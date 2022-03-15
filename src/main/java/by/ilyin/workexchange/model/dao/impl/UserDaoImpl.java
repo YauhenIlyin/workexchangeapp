@@ -42,24 +42,32 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             (SELECT account_status.account_status_id FROM account_status WHERE account_status_description = ?)
             );
             """; //todo
+
+    private static final String CS_SQL_EXPRESSION_IS_VALID_NEW_ACCOUNT_LOGIN = "{call isValidAccountLogin(?)}";
+    private static final String CS_SQL_EXPRESSION_ADD_NEW_PASS_BY_USER_LOGIN = "{call addPassByUserLogin(?,?)}";
+
+    private Statement findAllUsersPS;
+    private Statement findUserByIdPS;
+    private Statement addUserPS;
+    private Statement isValidAccountLoginCS;
+    private Statement addPassByUserLoginCS;
+
     /*
     private static final String PS_SQL_EXPRESSION_VALIDATE_NEW_LOGIN = """
             SELECT count(*) FROM users WHERE users.login = ?;
             """;
     */
-    private static final String CS_SQL_EXPRESSION_IS_VALID_NEW_ACCOUNT_LOGIN = "{call isValidNewAccountLogin(?)}";
-    private static final String CS_SQL_EXPRESSION_ADD_NEW_PASS_BY_USER_LOGIN = "{call addNewPassByUserLogin(?,?)}";
-    //private Statement statement = null; //todo and close()
+
 
     @Override
     public List<User> findAll() { //todo optional ?
         ArrayList<User> userList = new ArrayList<>();
         try {
-            PreparedStatement statement = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
-            ResultSet resultSet = statement.executeQuery();
-            userList = buildUserListFromResultSet(resultSet);
-        } catch (SQLException throwables) { //todo
-            throwables.printStackTrace();
+            findAllUsersPS = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
+            ResultSet resultSet = findAllUsersPS.executeQuery();
+            userList = buildEntityListFromResultSet(resultSet);
+        } catch (SQLException cause) { //todo
+            throw new DaoException("")
         }
         return userList;
     }
@@ -73,7 +81,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             statement.setLong(1, id);
             statement.executeQuery();
             resultSet = statement.getResultSet();
-            userList = buildUserListFromResultSet(resultSet);
+            userList = buildEntityListFromResultSet(resultSet);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -181,21 +189,25 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     @Override
-    public void closeStatement(Statement statement) throws DaoException {
-        UserDao.super.close(statement);
+    public void closeStatement(Statement statement) {
+        super.closeStatement(findAllUsersPS);
+        super.closeStatement(findUserByIdPS);
+        super.closeStatement(addUserPS);
+        super.closeStatement(isValidNewAccountLoginCS);
+        super.closeStatement(addNewPassByUserLoginCS);
     }
 
     @Override
-    public void closeConnection(Connection connection) throws DaoException {
-        UserDao.super.close(connection);
+    public void closeConnection(Connection connection) {
+        super.closeConnection(connection);
     }
 
     @Override
-    public void setConnection(Connection connection) throws DaoException {
-
+    public void setConnection(Connection connection) {
+        super.setConnection(connection);
     }
 
-    private ArrayList<User> buildEntityListFromResultSet(ResultSet resultSet) throws DaoException {
+    private ArrayList<User> buildEntityListFromResultSet(ResultSet resultSet) throws SQLException {
         ArrayList<User> userList = new ArrayList<>();
         while (resultSet.next()) {
             User user = new User();
