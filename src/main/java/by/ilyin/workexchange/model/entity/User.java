@@ -269,7 +269,7 @@ public class User extends BaseEntity {
      * @see InnerBuilder
      */
     public InnerBuilder createInnerBuilder() {
-        return this.new InnerBuilder();
+        return this.new InnerBuilder(); //todo нужно ли this
     }
 
     /**

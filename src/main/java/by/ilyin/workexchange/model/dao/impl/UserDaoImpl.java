@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UserDaoImpl extends AbstractDao implements UserDao {
 
@@ -43,51 +44,46 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             );
             """; //todo
 
-    private static final String CS_SQL_EXPRESSION_IS_VALID_NEW_ACCOUNT_LOGIN = "{call isValidAccountLogin(?)}";
-    private static final String CS_SQL_EXPRESSION_ADD_NEW_PASS_BY_USER_LOGIN = "{call addPassByUserLogin(?,?)}";
+    private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLogin(?)}";
+    private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLogin(?,?)}";
 
-    private Statement findAllUsersPS;
-    private Statement findUserByIdPS;
-    private Statement addUserPS;
-    private Statement isValidAccountLoginCS;
-    private Statement addPassByUserLoginCS;
-
-    /*
-    private static final String PS_SQL_EXPRESSION_VALIDATE_NEW_LOGIN = """
-            SELECT count(*) FROM users WHERE users.login = ?;
-            """;
-    */
-
+    private PreparedStatement findAllUsersPS;
+    private PreparedStatement findUserByIdPS;
+    private PreparedStatement addUserPS;
+    private CallableStatement isFreeAccountLoginCS;
+    private CallableStatement addPassByUserLoginCS;
 
     @Override
-    public List<User> findAll() { //todo optional ?
-        ArrayList<User> userList = new ArrayList<>();
+    public List<Optional<User>> findAll() throws DaoException { //todo optional ?
+        ArrayList<Optional<User>> userList;
         try {
-            findAllUsersPS = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
+            if (findAllUsersPS == null) {
+                findAllUsersPS = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
+            }
             ResultSet resultSet = findAllUsersPS.executeQuery();
-            userList = buildEntityListFromResultSet(resultSet);
-        } catch (SQLException cause) { //todo
-            throw new DaoException("")
+            userList = buildUserListFromResultSet(resultSet);
+        } catch (SQLException cause) {
+            throw new DaoException(cause); //todo нужно ли дополнительное сообщение
         }
         return userList;
     }
 
     @Override
-    public User findEntityById(Long id) throws DaoException { //todo optional
-        ArrayList<User> userList = new ArrayList<>();
-        ResultSet resultSet = null;
+    public Optional<User> findEntityById(Long id) throws DaoException { //todo optional
+        Optional<User> optionalUser;
         try {
-            PreparedStatement statement = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
-            statement.setLong(1, id);
-            statement.executeQuery();
-            resultSet = statement.getResultSet();
-            userList = buildEntityListFromResultSet(resultSet);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            ResultSet resultSet;
+            if (findUserByIdPS == null) {
+                findUserByIdPS = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
+            }
+            findUserByIdPS.setLong(1, id);
+            findUserByIdPS.executeQuery();
+            resultSet = findUserByIdPS.getResultSet();
+            optionalUser = buildUserListFromResultSet(resultSet).get(0);
+        } catch (SQLException cause) {
+            throw new DaoException(cause);
         }
-        //todo statement.close() resultSet.close() ???
-        return userList.get(0); //todo optional
-
+        return optionalUser;
     }
 
     /*
@@ -106,58 +102,60 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
      */
     //todo почистить код
-    public boolean validateAccountLogin(char[] login) {
-        CallableStatement callableStatement;
-        boolean isValidLogin = false;
-        StringBuilder sb = new StringBuilder(login);
+    public boolean isFreeAccountLogin(char[] login) throws DaoException { //todo учесть случай, когда пустые ячейки в массиве
+        StringBuilder sb = new StringBuilder(login.length);
+        sb.append(login);
         try {
-            callableStatement = connection.prepareCall(CS_SQL_EXPRESSION_IS_VALID_NEW_ACCOUNT_LOGIN);
-            callableStatement.setString(1, sb.toString());
-            callableStatement.registerOutParameter(1, Types.BOOLEAN);
-            callableStatement.execute();
-            isValidLogin = callableStatement.getBoolean(1);
+            if (isFreeAccountLoginCS == null) {
+                isFreeAccountLoginCS = connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
+            }
+            isFreeAccountLoginCS.setString(1, sb.toString());
+            isFreeAccountLoginCS.registerOutParameter(1, Types.BOOLEAN);
+            isFreeAccountLoginCS.execute();
+            return isFreeAccountLoginCS.getBoolean(1); //todo 1 или 2
         } catch (SQLException cause) {
-            //todo исключение
+            throw new DaoException(cause);
         }
-        return isValidLogin;
     }
 
-
-    public boolean registerNewAccount(User user, char[] login, char[] password) throws DaoException {
-        if (validateAccountLogin(login)) {
+    public boolean addUserAccount(User user, char[] login) throws DaoException {
+        if (user != null && login != null && login.length > 0 && isFreeAccountLogin(login)) {
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(PS_SQL_EXPRESSION_ADD_USER);
-                preparedStatement.setString(1, user.getFirstName());
-                preparedStatement.setString(2, user.getLastName());
+                if (addUserPS == null) {
+                    addUserPS = connection.prepareStatement(PS_SQL_EXPRESSION_ADD_USER);
+                }
+
+                addUserPS.setString(1, user.getFirstName());
+                addUserPS.setString(2, user.getLastName());
                 if (user.getRegistrationDateTime() == null) {
                     user.setRegistrationDateTime(LocalDateTime.now());
                 }
-                preparedStatement.setString(3, user.getRegistrationDateTime().toString());
+                addUserPS.setString(3, user.getRegistrationDateTime().toString());
                 if (user.getLastActivityDateTime() == null) {
                     user.setLastActivityDateTime(LocalDateTime.now());
                 }
-                preparedStatement.setString(4, user.getLastActivityDateTime().toString());
-                preparedStatement.setString(5, user.getEmail());
-                preparedStatement.setString(6, user.getMobileNumber());
-                StringBuilder sb = new StringBuilder();
+                addUserPS.setString(4, user.getLastActivityDateTime().toString());
+                addUserPS.setString(5, user.getEmail());
+                addUserPS.setString(6, user.getMobileNumber());
+                StringBuilder sb = new StringBuilder(login.length);
                 sb.append(login);
-                preparedStatement.setString(7, sb.toString());
+                addUserPS.setString(7, sb.toString());
                 if (user.getRole() == null) {
                     user.setRole(BASE_USER_ROLE_DESCRIPTION);
                 }
-                preparedStatement.setString(8, user.getRole());
+                addUserPS.setString(8, user.getRole());
                 if (user.getAccountStatus() == null) {
                     user.setAccountStatus(BASE_USER_ACCOUNT_STATUS_DESCRIPTION);
                 }
-                preparedStatement.setString(9, user.getAccountStatus());
-                preparedStatement.executeQuery();
-            } catch (SQLException e) {
-                throw new DaoException(" 123", e);//todo
+                addUserPS.setString(9, user.getAccountStatus());
+                addUserPS.executeQuery();
+                return true;
+            } catch (SQLException cause) {
+                throw new DaoException(cause);
             }
-            //todo email sending and validation
-            return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     @Override
@@ -193,8 +191,8 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         super.closeStatement(findAllUsersPS);
         super.closeStatement(findUserByIdPS);
         super.closeStatement(addUserPS);
-        super.closeStatement(isValidNewAccountLoginCS);
-        super.closeStatement(addNewPassByUserLoginCS);
+        super.closeStatement(isFreeAccountLoginCS);
+        super.closeStatement(addPassByUserLoginCS);
     }
 
     @Override
@@ -207,23 +205,32 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         super.setConnection(connection);
     }
 
-    private ArrayList<User> buildEntityListFromResultSet(ResultSet resultSet) throws SQLException {
-        ArrayList<User> userList = new ArrayList<>();
-        while (resultSet.next()) {
-            User user = new User();
-            user.createInnerBuilder()
-                    .setId(resultSet.getInt(DatabaseColumnNames.USERS_ID))
-                    .setFirstName(resultSet.getString(DatabaseColumnNames.USERS_FIRST_NAME))
-                    .setLastName(resultSet.getString(DatabaseColumnNames.USERS_LAST_NAME))
-                    .setRegistrationDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_REGISTRATION_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                    .setLastActivityDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_LAST_ACTIVITY_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                    .setEmail(resultSet.getString(DatabaseColumnNames.USERS_E_MAIL))
-                    .setMobileNumber(resultSet.getString(DatabaseColumnNames.USERS_MOBILE_NUMBER))
-                    .setRole(resultSet.getString(DatabaseColumnNames.ROLE_DESCRIPTION))
-                    .setAccountStatus(resultSet.getString(DatabaseColumnNames.ACCOUNT_STATUS_DESCRIPTOR));
-            userList.add(user);
+    private ArrayList<Optional<User>> buildUserListFromResultSet(ResultSet resultSet) throws SQLException {
+        ArrayList<Optional<User>> optionalUserList = new ArrayList<>();
+        boolean isWorking = true;
+        User user = null;
+        while (isWorking) {
+            if (resultSet.next()) {
+                user = new User();
+                user.createInnerBuilder()
+                        .setId(resultSet.getInt(DatabaseColumnNames.USERS_ID))
+                        .setFirstName(resultSet.getString(DatabaseColumnNames.USERS_FIRST_NAME))
+                        .setLastName(resultSet.getString(DatabaseColumnNames.USERS_LAST_NAME))
+                        .setRegistrationDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_REGISTRATION_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .setLastActivityDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_LAST_ACTIVITY_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .setEmail(resultSet.getString(DatabaseColumnNames.USERS_E_MAIL))
+                        .setMobileNumber(resultSet.getString(DatabaseColumnNames.USERS_MOBILE_NUMBER))
+                        .setRole(resultSet.getString(DatabaseColumnNames.USER_ROLE_ROLE_DESCRIPTION))
+                        .setAccountStatus(resultSet.getString(DatabaseColumnNames.ACCOUNT_STATUS_DESCRIPTION));
+                optionalUserList.add(Optional.of(user));
+            } else {
+                isWorking = false;
+            }
         }
-        return userList;
+        if (user == null) {
+            optionalUserList.add(Optional.ofNullable(user));
+        }
+        return optionalUserList;
     }
 
 

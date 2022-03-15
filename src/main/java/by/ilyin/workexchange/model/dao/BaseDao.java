@@ -2,18 +2,18 @@ package by.ilyin.workexchange.model.dao;
 
 import by.ilyin.workexchange.model.entity.BaseEntity;
 import by.ilyin.workexchange.exception.DaoException;
-import org.apache.logging.log4j.Logger;
+import by.ilyin.workexchange.model.entity.User;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 
 public interface BaseDao<K, T extends BaseEntity> {
 
     List<T> findAll() throws DaoException;
 
-    T findEntityById(K id) throws DaoException;
+    Optional<T> findEntityById(K id) throws DaoException;
 
     boolean addEntity(T t) throws DaoException;
 

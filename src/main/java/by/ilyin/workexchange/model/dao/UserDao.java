@@ -4,19 +4,18 @@ import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.model.entity.User;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserDao extends BaseDao<Long, User> {
     //todo add methods from impl
 
-    public List<User> findAll();
+    public List<User> findAll() throws DaoException;
 
-    public User findEntityById(Long id) throws DaoException;
+    public Optional<User> findEntityById(Long id) throws DaoException;
 
-    public boolean validateAccountLogin(char[] login) throws DaoException;
+    public boolean isFreeAccountLogin(char[] login) throws DaoException;
 
     public boolean registerNewAccount(User user, char[] login, char[] password) throws DaoException;
 
@@ -32,12 +31,10 @@ public interface UserDao extends BaseDao<Long, User> {
 
     public User updateEntity(User user) throws DaoException;
 
-    private ArrayList<User> buildEntityListFromResultSet(ResultSet resultSet) throws DaoException;
-
     public void closeStatement(Statement statement) throws DaoException;
 
     public void setConnection(Connection connection) throws DaoException;
 
-    public void closeConnection(Connection connection) throws DaoException
+    public void closeConnection(Connection connection) throws DaoException;
 
 }
