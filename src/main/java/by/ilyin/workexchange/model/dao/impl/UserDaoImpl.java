@@ -5,24 +5,24 @@ import by.ilyin.workexchange.model.dao.AbstractDao;
 import by.ilyin.workexchange.model.dao.UserDao;
 import by.ilyin.workexchange.model.entity.User;
 import by.ilyin.workexchange.model.evidence.AccountStatus;
+import by.ilyin.workexchange.model.evidence.StatementHashtableKeyword;
+import by.ilyin.workexchange.model.evidence.StatementType;
 import by.ilyin.workexchange.model.evidence.UserRole;
 import by.ilyin.workexchange.model.evidence.dbnames.DatabaseColumnNames;
 
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class UserDaoImpl extends AbstractDao implements UserDao {
 
     private static final String BASE_USER_ROLE_DESCRIPTION = UserRole.SIMPLE_USER;
     private static final String BASE_USER_ACCOUNT_STATUS_DESCRIPTION = AccountStatus.WAITING_ACTIVATION;
     private static final String PS_SQL_EXPRESSION_FIND_ALL_USERS = """
-            SELECT id, first_name, last_name, registration_date, 
-            last_activity_date, e_mail, mobile_number, 
-            (SELECT role_description FROM user_role WHERE user_role.id = users.user_role_id ), 
+            SELECT id, first_name, last_name, registration_date,
+            last_activity_date, e_mail, mobile_number,
+            (SELECT role_description FROM user_role WHERE user_role.id = users.user_role_id ),
             (SELECT account_status_description FROM account_status WHERE account_status.id = users.account_status_id)
             FROM users;
             """; //todo
@@ -47,21 +47,22 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLogin(?)}";
     private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLogin(?,?)}";
 
-    private PreparedStatement findAllUsersPS;
-    private PreparedStatement findUserByIdPS;
-    private PreparedStatement addUserPS;
-    private CallableStatement isFreeAccountLoginCS;
-    private CallableStatement addPassByUserLoginCS;
+    //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
+
 
     @Override
     public List<Optional<User>> findAll() throws DaoException { //todo optional ?
         ArrayList<Optional<User>> userList;
         try {
-            if (findAllUsersPS == null) {
-                findAllUsersPS = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
-            }
-            ResultSet resultSet = findAllUsersPS.executeQuery();
+            PreparedStatement preparedStatement = (PreparedStatement) super.getCurrentStatementInstance(
+                    StatementType.PREPARED_STATEMENT,
+                    StatementHashtableKeyword.USER_PS_KEYWORD_FIND_ALL_USERS,
+                    PS_SQL_EXPRESSION_FIND_ALL_USERS);
+            ResultSet resultSet = preparedStatement.executeQuery();
             userList = buildUserListFromResultSet(resultSet);
+            if (super.getStatementAutoCloseableStatus()) {
+                super.closeStatement(preparedStatement);
+            }
         } catch (SQLException cause) {
             throw new DaoException(cause); //todo нужно ли дополнительное сообщение
         }
@@ -116,6 +117,11 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         } catch (SQLException cause) {
             throw new DaoException(cause);
         }
+    }
+
+    @Override
+    public boolean addUserAccount(User user, char[] login, char[] password) throws DaoException {
+        return false;
     }
 
     public boolean addUserAccount(User user, char[] login) throws DaoException {
@@ -187,23 +193,10 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     @Override
-    public void closeStatement(Statement statement) {
-        super.closeStatement(findAllUsersPS);
-        super.closeStatement(findUserByIdPS);
-        super.closeStatement(addUserPS);
-        super.closeStatement(isFreeAccountLoginCS);
-        super.closeStatement(addPassByUserLoginCS);
+    public User updateEntityById(Long id) throws DaoException {
+        return null;
     }
 
-    @Override
-    public void closeConnection(Connection connection) {
-        super.closeConnection(connection);
-    }
-
-    @Override
-    public void setConnection(Connection connection) {
-        super.setConnection(connection);
-    }
 
     private ArrayList<Optional<User>> buildUserListFromResultSet(ResultSet resultSet) throws SQLException {
         ArrayList<Optional<User>> optionalUserList = new ArrayList<>();

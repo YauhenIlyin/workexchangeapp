@@ -169,7 +169,7 @@ public class ConnectionPool {
         isConnectionPoolInService.set(true);
         while (busyConnectionsQueue.size() > 0 && currentAttemptWaitBeReleasedConnections > 0) {
             try {
-                --currentAttemptWaitBeReleasedConnections
+                --currentAttemptWaitBeReleasedConnections;
                 Thread.sleep(SLEEP_TIME_WAIT_BE_RELEASED_CONNECTIONS_IN_ONE_ATTEMPT); // todo ждем освобождения коннекшенов(ожидаем окончания сложных операций) ,можно ли так
             } catch (InterruptedException cause) {
                 logger.log(Level.WARN, "sleep() get InterruptedException.");
