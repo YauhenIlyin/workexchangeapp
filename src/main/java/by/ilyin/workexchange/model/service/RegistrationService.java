@@ -28,6 +28,8 @@ public class RegistrationService {
             userDao.isFreeAccountLogin(login);
             userDao.addUserAccount(user, login);
             userDao.addUserAccountPasswordByLogin(login, passwordFirst);
+            entityTransaction.commit();
+            entityTransaction.endTransaction();
         } catch (DaoException e) {
             e.printStackTrace();//todo
         }
