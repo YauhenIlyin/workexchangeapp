@@ -5,8 +5,6 @@ import by.ilyin.workexchange.model.dao.AbstractDao;
 import by.ilyin.workexchange.model.dao.UserDao;
 import by.ilyin.workexchange.model.entity.User;
 import by.ilyin.workexchange.model.evidence.AccountStatus;
-import by.ilyin.workexchange.model.evidence.StatementHashtableKeyword;
-import by.ilyin.workexchange.model.evidence.StatementType;
 import by.ilyin.workexchange.model.evidence.UserRole;
 import by.ilyin.workexchange.model.evidence.dbnames.DatabaseColumnNames;
 import by.ilyin.workexchange.util.SecurityDataCleaner;
@@ -37,7 +35,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             (SELECT account_status_description FROM account_status WHERE account_status.id = users.account_status_id)
             FROM users
             WHERE id = ?;         
-            """;
+            """; //todo при выборе нескольких id генерировать expression склеивая в конце ?, ?, ?, ?, в стринг билдере
     private static final String PS_SQL_EXPRESSION_ADD_USER = """
             INSERT INTO users(first_name, last_name, registration_date,
             last_activity_date, e_mail, mobile_number, login, user_role_id, account_status_id)
@@ -46,27 +44,21 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             (SELECT user_role.id FROM user_role WHERE user_role.role_description = ?),
             (SELECT account_status.account_status_id FROM account_status WHERE account_status_description = ?)
             );
-            """; //todo
+            """;
     private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLogin(?)}";
     private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLogin(?,?)}";
 
     private static final Logger logger = LogManager.getLogger();
     //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
 
-
     @Override
     public List<Optional<User>> findAll() throws DaoException { //todo optional ?
         ArrayList<Optional<User>> userList;
         try {
-            PreparedStatement preparedStatement = (PreparedStatement) super.getCurrentStatementInstance(
-                    StatementType.PREPARED_STATEMENT,
-                    StatementHashtableKeyword.USER_PS_KEYWORD_FIND_ALL_USERS,
-                    PS_SQL_EXPRESSION_FIND_ALL_USERS);
+            PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
             ResultSet resultSet = preparedStatement.executeQuery();
             userList = buildUserListFromResultSet(resultSet);
-            if (super.getStatementAutoCloseableStatus()) {
-                super.closeStatement(preparedStatement);
-            }
+            super.closeStatement(preparedStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause); //todo нужно ли дополнительное сообщение
         }
@@ -78,14 +70,12 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         Optional<User> optionalUser;
         try {
             ResultSet resultSet;
-            PreparedStatement preparedStatement = (PreparedStatement) super.getCurrentStatementInstance(
-                    StatementType.PREPARED_STATEMENT,
-                    StatementHashtableKeyword.USER_PS_KEYWORD_FIND_USER_BY_ID,
-                    PS_SQL_EXPRESSION_FIND_USER_BY_ID);
+            PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
             resultSet = preparedStatement.getResultSet();
             optionalUser = buildUserListFromResultSet(resultSet).get(0);
+            super.closeStatement(preparedStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause);
         }
@@ -97,14 +87,13 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         try {
-            CallableStatement callableStatement = (CallableStatement) super.getCurrentStatementInstance(
-                    StatementType.CALLABLE_STATEMENT,
-                    StatementHashtableKeyword.USER_CS_KEYWORD_IS_FREE_ACCOUNT_LOGIN,
-                    CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
+            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
             callableStatement.setString(1, loginSB.toString());
             callableStatement.registerOutParameter(1, Types.BOOLEAN);
             callableStatement.execute();
-            return callableStatement.getBoolean(1); //todo 1 или 2
+            boolean result = callableStatement.getBoolean(1); //todo 1 или 2
+            super.closeStatement(callableStatement);
+            return result;
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
@@ -122,16 +111,12 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         return false;
     }
 
-
     public boolean addUserAccount(User user, char[] login) throws DaoException {
         if (user != null && login != null && login.length > 0 && isFreeAccountLogin(login)) {
             StringBuilder loginSB = null;
             try {
                 loginSB = new StringBuilder(login.length);
-                PreparedStatement preparedStatement = (PreparedStatement) super.getCurrentStatementInstance(
-                        StatementType.PREPARED_STATEMENT,
-                        StatementHashtableKeyword.USER_PS_KEYWORD_ADD_USER,
-                        PS_SQL_EXPRESSION_ADD_USER);
+                PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_ADD_USER);
                 preparedStatement.setString(1, user.getFirstName());
                 preparedStatement.setString(2, user.getLastName());
                 if (user.getRegistrationDateTime() == null) {
@@ -155,6 +140,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
                 }
                 preparedStatement.setString(9, user.getAccountStatus());
                 preparedStatement.executeQuery();
+                super.closeStatement(preparedStatement);
                 return true;
             } catch (SQLException cause) {
                 throw new DaoException(cause);
@@ -200,7 +186,6 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         return null;
     }
 
-
     private ArrayList<Optional<User>> buildUserListFromResultSet(ResultSet resultSet) throws SQLException {
         ArrayList<Optional<User>> optionalUserList = new ArrayList<>();
         boolean isWorking = true;
@@ -228,6 +213,5 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         }
         return optionalUserList;
     }
-
 
 }

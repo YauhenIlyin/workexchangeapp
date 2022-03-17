@@ -29,30 +29,13 @@ public class EntityTransaction<T extends AbstractDao> {
         }
         for (T currentDao : daoArr) {
             currentDao.setConnection(connection);
-            currentDao.deactivateStatementAutoCloseable();
         }
     }
-
-    /*
-    public void initSingleOperation(AbstractDao dao) {
-        try {
-            if (connection == null) {
-                connection = ConnectionPool.getInstance().takeConnection();
-            }
-            dao.setConnection(connection);
-        } catch (ConnectionPoolException cause) {
-            cause.printStackTrace(); //todo
-        }
-    }
-     */
 
     public void endTransaction() {
         try {
             if (connection != null && !connection.getAutoCommit()) {
                 connection.setAutoCommit(true);
-            }
-            for (T currentDao : daoArr) {
-                currentDao.closeAllActiveStatements();
             }
             connection.close();
             connection = null;

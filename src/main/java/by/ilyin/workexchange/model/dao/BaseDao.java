@@ -15,15 +15,7 @@ public interface BaseDao<K, T extends BaseEntity> { //todo проверить м
 
     void closeStatement(Statement statement) throws DaoException;
 
-    public void closeAllActiveStatements();
-
-    public void activateStatementAutoCloseable();
-
-    public void deactivateStatementAutoCloseable();
-
     void closeConnection(Connection connection) throws DaoException;
-
-    public Statement getCurrentStatementInstance(String statementType, String keyWordStatement, String queryValue) throws SQLException;
 
     List<Optional<T>> findAll() throws DaoException;
 

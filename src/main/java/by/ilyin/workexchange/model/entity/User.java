@@ -25,7 +25,6 @@ public class User extends BaseEntity {
      *
      * @see User#toString()
      */
-    private static final int OPTIMAL_STRING_BUILDER_CAPACITY = 220; //todo можно ли так размещать
 
     /**
      * User id field
@@ -67,60 +66,8 @@ public class User extends BaseEntity {
 
     /**
      * Constructor to create an instance without parameters
-     *
-     * @see User#User(long, String, String, LocalDateTime, LocalDateTime, String, String, String, String) //todo char[]
      */
     public User() {
-    }
-
-    /**
-     * Constructor to create an instance with parameters without id (see{@link User#id}).
-     * Before the process of registering an account in the database.
-     *
-     * @param firstName            - user first name
-     * @param lastName             - user last name
-     * @param registrationDateTime - time and date of user registration
-     * @param lastActivityDateTime - time and date of the last user activity
-     * @param email                - user email
-     * @param mobileNumber         - user mobile number
-     * @param role                 - user role in the application
-     * @param accountStatus        - user account status in the application
-     */
-    public User(String firstName, String lastName, LocalDateTime registrationDateTime, LocalDateTime lastActivityDateTime, String email, String mobileNumber, String role, String accountStatus) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.registrationDateTime = registrationDateTime;
-        this.lastActivityDateTime = lastActivityDateTime;
-        this.email = email;
-        this.mobileNumber = mobileNumber;
-        this.role = role;
-        this.accountStatus = accountStatus;
-    }
-
-    /**
-     * Constructor to create an instance with parameters from database including id (see {@link User#id}).
-     *
-     * @param id                   - user entity id
-     * @param firstName            - user first name
-     * @param lastName             - user last name
-     * @param registrationDateTime - time and date of user registration
-     * @param lastActivityDateTime - time and date of the last user activity
-     * @param email                - user email
-     * @param mobileNumber         - user mobile number
-     * @param role                 - user role in the application
-     * @param accountStatus        - user account status in the application
-     */
-    public User(long id, String firstName, String lastName, LocalDateTime registrationDateTime, LocalDateTime lastActivityDateTime, String email, String mobileNumber, String role, String accountStatus) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.registrationDateTime = registrationDateTime;
-        this.lastActivityDateTime = lastActivityDateTime;
-        this.email = email;
-        this.mobileNumber = mobileNumber;
-        this.role = role;
-        this.accountStatus = accountStatus;
     }
 
     /**
@@ -286,23 +233,23 @@ public class User extends BaseEntity {
     }
 
     /**
-     * Inner class "InnerBuilder" instance creation function
+     * Inner class "UserBuilder" instance creation function
      *
-     * @return returns the instance of InnerBuilder
-     * @see InnerBuilder
+     * @return returns the instance of UserBuilder
+     * @see UserBuilder
      */
-    public InnerBuilder createInnerBuilder() {
-        return this.new InnerBuilder(); //todo нужно ли this
+    public UserBuilder createInnerBuilder() {
+        return this.new UserBuilder(); //todo нужно ли this
     }
 
     /**
-     * InnerBuilder inner class according to the "Builder" pattern to initialize the User class object
+     * UserBuilder inner class according to the "Builder" pattern to initialize the User class object
      *
      * @version 1.0
      */
-    public class InnerBuilder {
+    public class UserBuilder {
 
-        private InnerBuilder() {
+        private UserBuilder() {
         }
 
         /**
@@ -310,7 +257,7 @@ public class User extends BaseEntity {
          *
          * @param id - user id
          */
-        public InnerBuilder setId(long id) {
+        public UserBuilder setId(long id) {
             User.this.setId(id);
             return this;
         }
@@ -320,7 +267,7 @@ public class User extends BaseEntity {
          *
          * @param firstName - user first name
          */
-        public InnerBuilder setFirstName(String firstName) {
+        public UserBuilder setFirstName(String firstName) {
             User.this.firstName = firstName;
             return this;
         }
@@ -330,7 +277,7 @@ public class User extends BaseEntity {
          *
          * @param lastName - user last name
          */
-        public InnerBuilder setLastName(String lastName) {
+        public UserBuilder setLastName(String lastName) {
             User.this.lastName = lastName;
             return this;
         }
@@ -340,7 +287,7 @@ public class User extends BaseEntity {
          *
          * @param registrationDateTime - user registration date and time
          */
-        public InnerBuilder setRegistrationDate(LocalDateTime registrationDateTime) {
+        public UserBuilder setRegistrationDate(LocalDateTime registrationDateTime) {
             User.this.registrationDateTime = registrationDateTime;
             return this;
         }
@@ -350,7 +297,7 @@ public class User extends BaseEntity {
          *
          * @param lastActivityDateTime - user last activity date time
          */
-        public InnerBuilder setLastActivityDate(LocalDateTime lastActivityDateTime) {
+        public UserBuilder setLastActivityDate(LocalDateTime lastActivityDateTime) {
             User.this.lastActivityDateTime = lastActivityDateTime;
             return this;
         }
@@ -360,7 +307,7 @@ public class User extends BaseEntity {
          *
          * @param email - user email
          */
-        public InnerBuilder setEmail(String email) {
+        public UserBuilder setEmail(String email) {
             User.this.email = email;
             return this;
         }
@@ -370,7 +317,7 @@ public class User extends BaseEntity {
          *
          * @param mobileNumber - user mobile number
          */
-        public InnerBuilder setMobileNumber(String mobileNumber) {
+        public UserBuilder setMobileNumber(String mobileNumber) {
             User.this.mobileNumber = mobileNumber;
             return this;
         }
@@ -380,7 +327,7 @@ public class User extends BaseEntity {
          *
          * @param role - user role
          */
-        public InnerBuilder setRole(String role) {
+        public UserBuilder setRole(String role) {
             User.this.role = role;
             return this;
         }
@@ -390,7 +337,9 @@ public class User extends BaseEntity {
          *
          * @param accountStatus - user account status
          */
-        public InnerBuilder setAccountStatus(String accountStatus) {
+
+
+        public UserBuilder setAccountStatus(String accountStatus) {
             User.this.accountStatus = accountStatus;
             return this;
         }
@@ -432,7 +381,7 @@ public class User extends BaseEntity {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(OPTIMAL_STRING_BUILDER_CAPACITY);
+        StringBuilder sb = new StringBuilder();
         sb.append("User{")
                 .append("id='").append(id)
                 .append('\'').append(",firstName='").append(firstName)
