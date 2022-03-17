@@ -9,6 +9,10 @@ import by.ilyin.workexchange.model.evidence.StatementHashtableKeyword;
 import by.ilyin.workexchange.model.evidence.StatementType;
 import by.ilyin.workexchange.model.evidence.UserRole;
 import by.ilyin.workexchange.model.evidence.dbnames.DatabaseColumnNames;
+import by.ilyin.workexchange.util.SecurityDataCleaner;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -43,10 +47,10 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             (SELECT account_status.account_status_id FROM account_status WHERE account_status_description = ?)
             );
             """; //todo
-
     private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLogin(?)}";
     private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLogin(?,?)}";
 
+    private static final Logger logger = LogManager.getLogger();
     //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
 
 
@@ -74,12 +78,13 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         Optional<User> optionalUser;
         try {
             ResultSet resultSet;
-            if (findUserByIdPS == null) {
-                findUserByIdPS = connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
-            }
-            findUserByIdPS.setLong(1, id);
-            findUserByIdPS.executeQuery();
-            resultSet = findUserByIdPS.getResultSet();
+            PreparedStatement preparedStatement = (PreparedStatement) super.getCurrentStatementInstance(
+                    StatementType.PREPARED_STATEMENT,
+                    StatementHashtableKeyword.USER_PS_KEYWORD_FIND_USER_BY_ID,
+                    PS_SQL_EXPRESSION_FIND_USER_BY_ID);
+            preparedStatement.setLong(1, id);
+            preparedStatement.executeQuery();
+            resultSet = preparedStatement.getResultSet();
             optionalUser = buildUserListFromResultSet(resultSet).get(0);
         } catch (SQLException cause) {
             throw new DaoException(cause);
@@ -87,79 +92,77 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         return optionalUser;
     }
 
-    /*
-    public boolean validateAccountLogin(char[] login) {
-        ResultSet resultSet;
-        int numberOfMatches = 0;
-        try {
-            PreparedStatement statement = connection.prepareStatement(PS_SQL_EXPRESSION_VALIDATE_NEW_LOGIN);
-            statement.executeQuery();
-            resultSet = statement.getResultSet();
-            numberOfMatches = resultSet.getInt(1);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace(); //todo
-        }
-        return numberOfMatches == 0;
-    }
-     */
     //todo почистить код
     public boolean isFreeAccountLogin(char[] login) throws DaoException { //todo учесть случай, когда пустые ячейки в массиве
-        StringBuilder sb = new StringBuilder(login.length);
-        sb.append(login);
+        StringBuilder loginSB = new StringBuilder(login.length);
+        loginSB.append(login);
         try {
-            if (isFreeAccountLoginCS == null) {
-                isFreeAccountLoginCS = connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
-            }
-            isFreeAccountLoginCS.setString(1, sb.toString());
-            isFreeAccountLoginCS.registerOutParameter(1, Types.BOOLEAN);
-            isFreeAccountLoginCS.execute();
-            return isFreeAccountLoginCS.getBoolean(1); //todo 1 или 2
+            CallableStatement callableStatement = (CallableStatement) super.getCurrentStatementInstance(
+                    StatementType.CALLABLE_STATEMENT,
+                    StatementHashtableKeyword.USER_CS_KEYWORD_IS_FREE_ACCOUNT_LOGIN,
+                    CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
+            callableStatement.setString(1, loginSB.toString());
+            callableStatement.registerOutParameter(1, Types.BOOLEAN);
+            callableStatement.execute();
+            return callableStatement.getBoolean(1); //todo 1 или 2
         } catch (SQLException cause) {
             throw new DaoException(cause);
+        } finally {
+            SecurityDataCleaner.cleanStringBuilderValues(loginSB);
         }
     }
 
     @Override
-    public boolean addUserAccount(User user, char[] login, char[] password) throws DaoException {
+    public boolean addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
         return false;
     }
 
+    @Override
+    public boolean addUserAccountPasswordById(long id, char[] password) throws DaoException {
+        return false;
+    }
+
+
     public boolean addUserAccount(User user, char[] login) throws DaoException {
         if (user != null && login != null && login.length > 0 && isFreeAccountLogin(login)) {
+            StringBuilder loginSB = null;
             try {
-                if (addUserPS == null) {
-                    addUserPS = connection.prepareStatement(PS_SQL_EXPRESSION_ADD_USER);
-                }
-
-                addUserPS.setString(1, user.getFirstName());
-                addUserPS.setString(2, user.getLastName());
+                loginSB = new StringBuilder(login.length);
+                PreparedStatement preparedStatement = (PreparedStatement) super.getCurrentStatementInstance(
+                        StatementType.PREPARED_STATEMENT,
+                        StatementHashtableKeyword.USER_PS_KEYWORD_ADD_USER,
+                        PS_SQL_EXPRESSION_ADD_USER);
+                preparedStatement.setString(1, user.getFirstName());
+                preparedStatement.setString(2, user.getLastName());
                 if (user.getRegistrationDateTime() == null) {
                     user.setRegistrationDateTime(LocalDateTime.now());
                 }
-                addUserPS.setString(3, user.getRegistrationDateTime().toString());
+                preparedStatement.setString(3, user.getRegistrationDateTime().toString());
                 if (user.getLastActivityDateTime() == null) {
                     user.setLastActivityDateTime(LocalDateTime.now());
                 }
-                addUserPS.setString(4, user.getLastActivityDateTime().toString());
-                addUserPS.setString(5, user.getEmail());
-                addUserPS.setString(6, user.getMobileNumber());
-                StringBuilder sb = new StringBuilder(login.length);
-                sb.append(login);
-                addUserPS.setString(7, sb.toString());
+                preparedStatement.setString(4, user.getLastActivityDateTime().toString());
+                preparedStatement.setString(5, user.getEmail());
+                preparedStatement.setString(6, user.getMobileNumber());
+                loginSB.append(login);
+                preparedStatement.setString(7, loginSB.toString());
                 if (user.getRole() == null) {
                     user.setRole(BASE_USER_ROLE_DESCRIPTION);
                 }
-                addUserPS.setString(8, user.getRole());
+                preparedStatement.setString(8, user.getRole());
                 if (user.getAccountStatus() == null) {
                     user.setAccountStatus(BASE_USER_ACCOUNT_STATUS_DESCRIPTION);
                 }
-                addUserPS.setString(9, user.getAccountStatus());
-                addUserPS.executeQuery();
+                preparedStatement.setString(9, user.getAccountStatus());
+                preparedStatement.executeQuery();
                 return true;
             } catch (SQLException cause) {
                 throw new DaoException(cause);
+            } finally {
+                SecurityDataCleaner.cleanStringBuilderValues(loginSB);
             }
         } else {
+            logger.log(Level.WARN, "Login, user is empty or such login is occupied.");
             return false;
         }
     }

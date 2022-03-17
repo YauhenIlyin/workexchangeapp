@@ -68,13 +68,38 @@ public class User extends BaseEntity {
     /**
      * Constructor to create an instance without parameters
      *
-     * @see User#User(long, String, String, LocalDateTime, LocalDateTime, String, String, String, char[], String, String) //todo char[]
+     * @see User#User(long, String, String, LocalDateTime, LocalDateTime, String, String, String, String) //todo char[]
      */
     public User() {
     }
 
     /**
-     * Constructor to create an instance with parameters
+     * Constructor to create an instance with parameters without id (see{@link User#id}).
+     * Before the process of registering an account in the database.
+     *
+     * @param firstName            - user first name
+     * @param lastName             - user last name
+     * @param registrationDateTime - time and date of user registration
+     * @param lastActivityDateTime - time and date of the last user activity
+     * @param email                - user email
+     * @param mobileNumber         - user mobile number
+     * @param role                 - user role in the application
+     * @param accountStatus        - user account status in the application
+     */
+    public User(String firstName, String lastName, LocalDateTime registrationDateTime, LocalDateTime lastActivityDateTime, String email, String mobileNumber, String role, String accountStatus) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.registrationDateTime = registrationDateTime;
+        this.lastActivityDateTime = lastActivityDateTime;
+        this.email = email;
+        this.mobileNumber = mobileNumber;
+        this.role = role;
+        this.accountStatus = accountStatus;
+    }
+
+    /**
+     * Constructor to create an instance with parameters from database including id (see {@link User#id}).
      *
      * @param id                   - user entity id
      * @param firstName            - user first name
@@ -83,12 +108,10 @@ public class User extends BaseEntity {
      * @param lastActivityDateTime - time and date of the last user activity
      * @param email                - user email
      * @param mobileNumber         - user mobile number
-     * @param login                - user login
-     * @param password             - user password
      * @param role                 - user role in the application
      * @param accountStatus        - user account status in the application
      */
-    public User(long id, String firstName, String lastName, LocalDateTime registrationDateTime, LocalDateTime lastActivityDateTime, String email, String mobileNumber, String login, char[] password, String role, String accountStatus) {
+    public User(long id, String firstName, String lastName, LocalDateTime registrationDateTime, LocalDateTime lastActivityDateTime, String email, String mobileNumber, String role, String accountStatus) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -395,7 +418,7 @@ public class User extends BaseEntity {
 
     @Override
     public int hashCode() {
-        int result = (int) id; //todo  проверить варианти приведения long к int 0, - ?? и т.д.
+        int result = (int) id; //todo  проверить варианти приведения long к int 0, - ?? и т.д.// добавить сдвиги?
         result = 31 * result + firstName.hashCode();
         result = 31 * result + lastName.hashCode();
         result = 31 * result + registrationDateTime.hashCode();

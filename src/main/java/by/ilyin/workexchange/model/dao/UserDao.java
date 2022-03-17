@@ -8,7 +8,11 @@ public interface UserDao extends BaseDao<Long, User> {
 
     public boolean isFreeAccountLogin(char[] login) throws DaoException;
 
-    public boolean addUserAccount(User user, char[] login, char[] password) throws DaoException;
+    public boolean addUserAccount(User user, char[] login) throws DaoException;
+
+    public boolean addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException;
+
+    public boolean addUserAccountPasswordById(long id, char[] password) throws DaoException;
 
     public boolean activateAccount(User user) throws DaoException;
 

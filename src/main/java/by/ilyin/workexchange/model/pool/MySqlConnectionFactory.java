@@ -1,5 +1,6 @@
 package by.ilyin.workexchange.model.pool;
 
+import by.ilyin.workexchange.exception.ConnectionPoolException;
 import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.exception.WorkExchangeAppException;
 import com.mysql.cj.jdbc.Driver;
@@ -28,7 +29,7 @@ class MySqlConnectionFactory {
     private char[] dbLogin;
     private char[] dbPassword;
 
-    private MySqlConnectionFactory() throws DaoException {
+    private MySqlConnectionFactory() throws ConnectionPoolException {
         try {
             databasePropertyManager = DatabasePropertyManager.getInstance();
             dbAddress = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_ADDRESS);
@@ -39,18 +40,18 @@ class MySqlConnectionFactory {
             Driver driver = new com.mysql.cj.jdbc.Driver();
             DriverManager.registerDriver(driver);
         } catch (SQLException cause) {
-            throw new DaoException("Driver not found... SQLException", cause);
+            throw new ConnectionPoolException("Driver not found... SQLException", cause);
         }
     }
 
-    public static MySqlConnectionFactory getInstance() throws DaoException {
+    public static MySqlConnectionFactory getInstance() throws ConnectionPoolException {
         if (instance == null) {
             instance = new MySqlConnectionFactory();
         }
         return instance;
     }
 
-    Connection getProxyConnection() throws DaoException {
+    Connection getProxyConnection() throws ConnectionPoolException {
         //todo clear String Builders
         StringBuilder sbUrl = new StringBuilder();
         sbUrl.append(dbAddress).append(dbPort).append('/').append(dbName);
@@ -62,7 +63,7 @@ class MySqlConnectionFactory {
         try {
             proxyConnection = (ProxyConnection) DriverManager.getConnection(sbUrl.toString(), sbLogin.toString(), sbPassword.toString());
         } catch (SQLException cause) {
-            throw new DaoException("MySqlConnectionFactory: createAndGetProxyConnection: DriverManager.getConnection() SQlException", cause);
+            throw new ConnectionPoolException("MySqlConnectionFactory: createAndGetProxyConnection: DriverManager.getConnection() SQlException", cause);
         }
         return proxyConnection;
     }

@@ -1,7 +1,6 @@
 package by.ilyin.workexchange.model.pool;
 
-import by.ilyin.workexchange.exception.DaoException;
-import by.ilyin.workexchange.exception.WorkExchangeAppException;
+import by.ilyin.workexchange.exception.ConnectionPoolException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +45,7 @@ public class ConnectionPool {
 
     private static Logger logger = LogManager.getLogger();
 
-    private ConnectionPool() throws DaoException { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
+    private ConnectionPool() throws ConnectionPoolException { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
         initializeConnectionPoolSizeParameters();
 
         freeConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
@@ -57,7 +56,7 @@ public class ConnectionPool {
         }
     }
 
-    public static ConnectionPool getInstance() throws WorkExchangeAppException {
+    public static ConnectionPool getInstance() throws ConnectionPoolException {
         if (instance == null) {
             initializationLock.lock();
             try {
@@ -65,6 +64,8 @@ public class ConnectionPool {
                     instance = new ConnectionPool();
                     isInitialise = true;
                 }
+            } catch (ConnectionPoolException cause) {
+                //todo
             } finally {
                 initializationLock.unlock();
             }
@@ -92,14 +93,14 @@ public class ConnectionPool {
             try {
                 freeConnectionsQueue.put(connection);
                 return true;
-            } catch (InterruptedException e) {
+            } catch (InterruptedException cause) {
                 Thread.currentThread().interrupt();
             }
         }
         return false;
     }
 
-    private void initializeConnectionPoolSizeParameters() throws DaoException {
+    private void initializeConnectionPoolSizeParameters() throws ConnectionPoolException {
         DatabasePropertyManager databasePropertyManager = DatabasePropertyManager.getInstance();
         char[] connectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
         StringBuilder sbConnectionCount = new StringBuilder();
@@ -125,7 +126,7 @@ public class ConnectionPool {
     }
 
 
-    private BlockingQueue<Connection> initialiseConnectionQueue(BlockingQueue<Connection> currentConnectionsQueue, int size) throws DaoException {
+    private BlockingQueue<Connection> initialiseConnectionQueue(BlockingQueue<Connection> currentConnectionsQueue, int size) throws ConnectionPoolException {
         if (currentConnectionsQueue == null) {
             currentConnectionsQueue = new LinkedBlockingQueue<>(size);
         }
@@ -139,7 +140,7 @@ public class ConnectionPool {
                 connection = null;
                 try {
                     connection = mySqlConnectionFactory.getProxyConnection();
-                } catch (DaoException cause) {
+                } catch (ConnectionPoolException cause) {
                     logger.log(Level.WARN, "Connection number " + (currentConnectionCount + 1) + " is not created.");
                     --currentMaxSize;
                 }
@@ -159,7 +160,7 @@ public class ConnectionPool {
         return currentConnectionsQueue;
     }
 
-    private void clearMainConnectionQueue() throws DaoException {
+    private void clearMainConnectionQueue() throws ConnectionPoolException {
         initializeConnectionPoolSizeParameters();
         initialiseConnectionQueue(spareFreeConnectionsQueue, spareConnectionPoolSize);
         spareBusyConnectionsQueue = new LinkedBlockingQueue<Connection>(spareConnectionPoolSize);
@@ -200,7 +201,7 @@ public class ConnectionPool {
 
     }
 
-    public void destroyConnectionPool() throws DaoException {
+    public void destroyConnectionPool() throws ConnectionPoolException {
         if (isConnectionPoolInService.get()) {
             serviceLock.lock();
         }
@@ -209,7 +210,7 @@ public class ConnectionPool {
             deregisterDriver();
             instance = null;
         } else {
-            throw new DaoException("ConnectionPool.class: destroyConnectionPool(): not all connections is free");//todo
+            throw new ConnectionPoolException("ConnectionPool.class: destroyConnectionPool(): not all connections is free");//todo
         }
     }
 
@@ -228,7 +229,7 @@ public class ConnectionPool {
         connectionQueue = null;
     }
 
-    private void deregisterDriver() throws DaoException {
+    private void deregisterDriver() throws ConnectionPoolException {
         Iterator<Driver> driverIterator = DriverManager.getDrivers().asIterator();
         Driver driverContainer;
         while (driverIterator.hasNext()) {
@@ -236,7 +237,7 @@ public class ConnectionPool {
             try {
                 DriverManager.deregisterDriver(driverContainer);
             } catch (SQLException e) {
-                throw new DaoException("ConnectionPool.class: deregisterDriver(): DriverManager.deregisterDriver() error", e);
+                throw new ConnectionPoolException("ConnectionPool.class: deregisterDriver(): DriverManager.deregisterDriver() error", e);
             }
         }
     }
