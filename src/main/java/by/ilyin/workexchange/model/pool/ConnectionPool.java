@@ -1,6 +1,7 @@
 package by.ilyin.workexchange.model.pool;
 
 import by.ilyin.workexchange.exception.ConnectionPoolException;
+import by.ilyin.workexchange.util.SecurityDataCleaner;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,10 +48,8 @@ public class ConnectionPool {
 
     private ConnectionPool() throws ConnectionPoolException { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
         initializeConnectionPoolSizeParameters();
-
         freeConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
         busyConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
-
         if (this.connectionPoolSize < minConnectionPoolSize) { //todo
             throw new RuntimeException("ConnectionPool.class: constructor(): connection creating error. less than 4"); //todo
         }
@@ -100,7 +99,7 @@ public class ConnectionPool {
         return false;
     }
 
-    private void initializeConnectionPoolSizeParameters() throws ConnectionPoolException {
+    private void initializeConnectionPoolSizeParameters() throws ConnectionPoolException { //todo возможно потимизировать код без sb или вынести дублирующийся код в метод
         DatabasePropertyManager databasePropertyManager = DatabasePropertyManager.getInstance();
         char[] connectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
         StringBuilder sbConnectionCount = new StringBuilder();
@@ -123,6 +122,7 @@ public class ConnectionPool {
             minConnectionPoolSize = DEFAULT_MIN_CONNECTION_POOL_SIZE;
             spareConnectionPoolSize = DEFAULT_SPARE_CONNECTION_POOL_SIZE;
         }
+        SecurityDataCleaner.cleanStringBuildersValues(sbConnectionCount, sbMinConnectionCount, sbSpareConnectionCount);
     }
 
 
@@ -179,11 +179,7 @@ public class ConnectionPool {
         freeConnectionsQueue = spareFreeConnectionsQueue;
         busyConnectionsQueue = spareBusyConnectionsQueue;
         isConnectionPoolInService.set(false);
-
-
         boolean isAllConnectionsFree = false;
-
-
         MySqlConnectionFactory mySqlConnectionFactory = null;
         Connection connection;
         connection = mySqlConnectionFactory.getProxyConnection();
@@ -198,7 +194,8 @@ public class ConnectionPool {
             }
             ++attemptNumber;
         }
-
+        //todo  недоделано, возможно есть ошибки.
+        //todo  возвращение пересозданного пула
     }
 
     public void destroyConnectionPool() throws ConnectionPoolException {

@@ -1,5 +1,6 @@
 package by.ilyin.workexchange.model.pool;
 
+import by.ilyin.workexchange.exception.ConnectionPoolException;
 import by.ilyin.workexchange.exception.WorkExchangeAppException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -65,9 +66,9 @@ class ProxyConnection implements Connection {
         try {
             connectionPool = ConnectionPool.getInstance();
             connectionPool.relieveConnection(connection);
-        } catch (WorkExchangeAppException e) {
-            logger.log(Level.ERROR, e.getMessage());
-            e.printStackTrace();//todo
+        } catch (ConnectionPoolException cause) {
+            logger.log(Level.ERROR, cause.getMessage());
+            cause.printStackTrace();//todo
         }
         //todo need log
     }
