@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-class ProxyConnection implements Connection {
+final class ProxyConnection implements Connection {
 
     private Connection connection;
     private static Logger logger = LogManager.getLogger();
@@ -41,12 +41,12 @@ class ProxyConnection implements Connection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException { //todo  в чем смысл?
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
         connection.setAutoCommit(autoCommit);
     }
 
     @Override
-    public boolean getAutoCommit() throws SQLException { //todo в чем смысл ?
+    public boolean getAutoCommit() throws SQLException {
         return connection.getAutoCommit();
     }
 
@@ -65,7 +65,7 @@ class ProxyConnection implements Connection {
         ConnectionPool connectionPool;
         try {
             connectionPool = ConnectionPool.getInstance();
-            connectionPool.relieveConnection(connection);
+            connectionPool.relieveConnection(this);
         } catch (ConnectionPoolException cause) {
             logger.log(Level.ERROR, cause.getMessage());
             cause.printStackTrace();//todo

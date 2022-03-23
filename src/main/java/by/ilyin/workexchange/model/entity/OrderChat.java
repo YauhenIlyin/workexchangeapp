@@ -2,8 +2,10 @@ package by.ilyin.workexchange.model.entity;
 
 public class OrderChat extends BaseEntity {
 
+    private long id;
+
     public OrderChat(long id) {
-        super(id);
+        this.id = id;
     }
 
 }

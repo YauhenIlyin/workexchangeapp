@@ -12,6 +12,7 @@ public class RegistrationService {
     public boolean registerNewAccount(char[] login, char[] passwordFirst, char[] passwordSecond,
 
                                       String firstName, String lastName, String eMail, String mobileNumber) {
+        //return dto ??
         if (!passwordFirst.equals(passwordSecond)) {
             return false;
         }
@@ -31,6 +32,7 @@ public class RegistrationService {
             entityTransaction.commit();
             entityTransaction.endTransaction();
         } catch (DaoException e) {
+            entityTransaction.rollback();
             e.printStackTrace();//todo
         }
         return true;

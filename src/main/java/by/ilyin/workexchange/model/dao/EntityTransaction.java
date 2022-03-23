@@ -11,12 +11,10 @@ import java.sql.SQLException;
 public class EntityTransaction<T extends AbstractDao> {
 
     private Connection connection;
-    private T[] daoArr;
 
     private static final Logger logger = LogManager.getLogger();
 
-    public void initTransaction(T... daoArr) {
-        this.daoArr = daoArr;
+    public void initTransaction(T dao, T... daoArr) {
         try {
             if (connection == null) {
                 connection = ConnectionPool.getInstance().takeConnection();
@@ -27,6 +25,7 @@ public class EntityTransaction<T extends AbstractDao> {
         } catch (ConnectionPoolException cause) {
             cause.printStackTrace();//todo
         }
+        dao.setConnection(connection);
         for (T currentDao : daoArr) {
             currentDao.setConnection(connection);
         }
@@ -34,7 +33,7 @@ public class EntityTransaction<T extends AbstractDao> {
 
     public void endTransaction() {
         try {
-            if (connection != null && !connection.getAutoCommit()) {
+            if (connection != null) {
                 connection.setAutoCommit(true);
             }
             connection.close();
@@ -51,6 +50,14 @@ public class EntityTransaction<T extends AbstractDao> {
             throwables.printStackTrace(); //todo
         }
 
+    }
+
+    public void rollback() {
+        try {
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

@@ -1,7 +1,6 @@
 package by.ilyin.workexchange._main;
 
 import by.ilyin.workexchange.model.dao.impl.UserDaoImpl;
-import by.ilyin.workexchange.util.email.EmailManager;
 
 import java.sql.*;
 
@@ -62,9 +61,6 @@ public class Main {
         EmailManager emailManager = new EmailManager();
         emailManager.sendMail("prog.jekylin@gmail.com");
         */
-
-        UserDaoImpl userDao = new UserDaoImpl();
-        userDao.closeAllActiveStatements();
     }
 
 }

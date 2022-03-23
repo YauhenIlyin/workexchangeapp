@@ -2,7 +2,7 @@ package by.ilyin.workexchange.controller.command;
 
 public class CommandResult {
 
-    enum PageTransitionType {
+    public enum PageTransitionType {
         FORWARD,
         REDIRECT
     }
