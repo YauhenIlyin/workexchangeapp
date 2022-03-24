@@ -1,7 +1,6 @@
 package by.ilyin.workexchange.controller;
 
-import by.ilyin.workexchange.controller.command.Command;
-import by.ilyin.workexchange.controller.command.CommandType;
+import by.ilyin.workexchange.controller.command.*;
 import by.ilyin.workexchange.validator.CommandValidator;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -25,6 +24,7 @@ public class ControllerServlet extends HttpServlet {
         response.setContentType("text/html");
 
         // Hello
+        System.out.println("do in servlet");
         PrintWriter out = response.getWriter();
         out.println("<html><body>");
         out.println("<h1>" + message + "</h1>");
@@ -36,17 +36,34 @@ public class ControllerServlet extends HttpServlet {
         System.out.println(11);
 
         System.out.println(22);
+        processRequest(request, response);
 
+
+    }
+
+    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        System.out.println(request.getParameter("command"));
         String currentCommandStr = request.getParameter("command");
+        Router.RouteType route = null;
+
         if (CommandValidator.getInstance().validateCommand(currentCommandStr)) {
-            CommandType commandType = CommandType.valueOf(currentCommandStr.toUpperCase());
-            Command command = commandType.getCurrentCommand();
+            Command command = CommandType.valueOf(currentCommandStr.toUpperCase()).getCurrentCommand();
             System.out.println("command is correct");
-            command.execute(request);
-            response.getWriter().println("fffff");
+            SessionRequestContent sessionRequestContent = new SessionRequestContent(request);
+            CommandResult commandResult = command.execute(sessionRequestContent);
+            commandResult.getSessionRequestContent().insertAttributesInSessionRequest(request);
+            route = commandResult.getRouter().getRouteType();
+            //response.getWriter().println("fffff");
         } else {
-            //todo error
-            System.out.println("this is error");
+            //Router.RouteType.ERROR
+        }
+        switch (route) {
+            case FORWARD:
+                break;
+            case REDIRECT:
+                break;
+            case ERROR:
+                break;
         }
     }
 

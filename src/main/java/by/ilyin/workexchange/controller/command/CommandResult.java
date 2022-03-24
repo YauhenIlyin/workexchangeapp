@@ -2,25 +2,19 @@ package by.ilyin.workexchange.controller.command;
 
 public class CommandResult {
 
-    public enum PageTransitionType {
-        FORWARD,
-        REDIRECT
+    private Router router;
+    private SessionRequestContent sessionRequestContent;
+
+    public CommandResult(Router router, SessionRequestContent sessionRequestContent) {
+        this.router = router;
+        this.sessionRequestContent = sessionRequestContent;
     }
 
-    private PagePath pagePath;
-    private PageTransitionType pageTransitionType;
-
-    public CommandResult(PagePath pagePath, PageTransitionType pageTransitionType) {
-        this.pagePath = pagePath;
-        this.pageTransitionType = pageTransitionType;
+    public Router getRouter() {
+        return router;
     }
 
-    public PagePath getPagePath() {
-        return this.pagePath;
+    public SessionRequestContent getSessionRequestContent() {
+        return sessionRequestContent;
     }
-
-    public PageTransitionType getPageTransitionType() {
-        return this.pageTransitionType;
-    }
-
 }

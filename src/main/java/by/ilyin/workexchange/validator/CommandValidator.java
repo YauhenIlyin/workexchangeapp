@@ -18,11 +18,15 @@ public class CommandValidator {
     }
 
     public static CommandValidator getInstance() {
-        return new CommandValidator();
+        if (instance == null) {
+            instance = new CommandValidator();
+        }
+        return instance;
     }
 
 
     public boolean validateCommand(String commandStr) {
+        System.out.println(commandStrHashSet.contains(commandStr.toUpperCase()));
         return commandStr != null && commandStrHashSet.contains(commandStr.toUpperCase());
         //todo checking parameters
     }

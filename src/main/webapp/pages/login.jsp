@@ -12,6 +12,7 @@
 
 </head>
 <body>
+<%System.out.println("work jsp login");%> <!--/delete test-->
 <form name="loginForm" method="POST" action="${pageContext.request.contextPath}/controller">
     <input type="hidden" name="command" value="login"/>
     <br/>

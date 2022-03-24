@@ -5,7 +5,7 @@
     <title>JSP - Hello World</title>
 </head>
 <body>
-
+<%System.out.println("work jsp index.jsp");%> <!--/delete test-->
 <jsp:forward page="pages/login.jsp" />
 
 <%--

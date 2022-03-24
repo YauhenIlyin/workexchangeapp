@@ -25,7 +25,6 @@ public class EmailManager {
         properties.setProperty("mail.smtp.ssl.enable", "true");
         //properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         Authenticator auth = new EmailAuthenticator("ilyin.testemail", "1991testpass1");
-
         Session session = Session.getDefaultInstance(properties, auth);
 
         MimeMessage mimeMessage = new MimeMessage(session);
