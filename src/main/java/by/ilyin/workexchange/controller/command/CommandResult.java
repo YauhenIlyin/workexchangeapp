@@ -14,7 +14,15 @@ public class CommandResult {
         return router;
     }
 
+    public void setRouter(Router router) {
+        this.router = router;
+    }
+
     public SessionRequestContent getSessionRequestContent() {
         return sessionRequestContent;
+    }
+
+    public void setSessionRequestContent(SessionRequestContent sessionRequestContent) {
+        this.sessionRequestContent = sessionRequestContent;
     }
 }

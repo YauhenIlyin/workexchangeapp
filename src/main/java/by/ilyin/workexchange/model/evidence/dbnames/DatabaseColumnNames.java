@@ -45,8 +45,6 @@ public class DatabaseColumnNames {
     public static final String ORDER_CHATS_MESSAGE_ID = "message_id";
     public static final String ORDER_CHATS_MESSAGE_INDEX_NUMBER = "message_index_number";
 
-
     private DatabaseColumnNames() {
     }
-
 }

@@ -6,7 +6,6 @@ public class AccountStatus {
     public static final String ACTIVATED = "activated";
     public static final String BLOCKED = "blocked";
 
-
     private AccountStatus() {
     }
 

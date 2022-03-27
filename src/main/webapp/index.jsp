@@ -6,14 +6,15 @@
 </head>
 <body>
 <%System.out.println("work jsp index.jsp");%> <!--/delete test-->
-<jsp:forward page="pages/login.jsp" />
+<jsp>
+    <jsp:forward page="pages/login.jsp"/>
 
-<%--
-<h1><%= "Hello World!" %>
-</h1>
-hellooooo hello hello hello
-<br/>
-<a href="hello-servlet">Hello Servlet</a>
---%>
+    <%--
+    <h1><%= "Hello World!" %>
+    </h1>
+    hellooooo hello hello hello
+    <br/>
+    <a href="hello-servlet">Hello Servlet</a>
+    --%>
 </body>
 </html>

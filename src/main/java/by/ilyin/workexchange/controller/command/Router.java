@@ -8,28 +8,12 @@ public class Router {
         ERROR;
     }
 
-    public enum PagePath {
-        LOGIN_PAGE("pages/login"),
-        REGISTRATION_PAGE("pages/registration"),
-        MAIN_PAGE("pages/main");
-
-        private String pagePath;
-
-        private PagePath(String pagePath) {
-            this.pagePath = pagePath;
-        }
-
-        private String getPagePath() {
-            return this.pagePath;
-        }
-    }
-
     private RouteType routeType;
-    private String pagePath;
+    private String pagePathStr;
 
-    public Router(RouteType routeType, PagePath pagePath) {
+    public Router(RouteType routeType, String pagePathStr) {
         this.routeType = routeType;
-        this.pagePath = pagePath.getPagePath();
+        this.pagePathStr = pagePathStr;
     }
 
     public RouteType getRouteType() {
@@ -37,6 +21,6 @@ public class Router {
     }
 
     public String getPagePath() {
-        return pagePath;
+        return pagePathStr;
     }
 }
