@@ -22,17 +22,15 @@ public class SignUpCommand implements Command {
     @Override
     public CommandResult execute(SessionRequestContent sessionRequestContent) {
         HashMap<String, String[]> parametersMap = sessionRequestContent.getRequestParameters();
-        char[] login = parametersMap.get(RequestParameterName.SIGN_UP_LOGIN)[0].toCharArray();
-        char[] passwordFirst = parametersMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST)[0].toCharArray();
-        char[] passwordSecond = parametersMap.get(RequestParameterName.SIGN_UP_PASSWORD_SECOND)[0].toCharArray();
+        HashMap<String, char[]> securityParametersMap = sessionRequestContent.getSecurityParameters();
+        char[] login = securityParametersMap.get(RequestParameterName.SIGN_UP_LOGIN);
+        char[] passwordFirst = securityParametersMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST);
+        char[] passwordSecond = securityParametersMap.get(RequestParameterName.SIGN_UP_PASSWORD_SECOND);
         String firstName = parametersMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0];
         String secondName = parametersMap.get(RequestParameterName.SIGN_UP_SECOND_NAME)[0];
         String eMail = parametersMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0];
         String mobileNumber = parametersMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0];
-        System.out.println(login);
-        System.out.println(passwordFirst);
-        System.out.println(eMail);
-        this.accountService.registerNewAccount(login, passwordFirst, passwordSecond, firstName, secondName, eMail, mobileNumber);
+        boolean result = accountService.registerNewAccount(login, passwordFirst, passwordSecond, firstName, secondName, eMail, mobileNumber);
 
         CommandResult commandResult = null; //new CommandResult(PagePath.LOGIN_PAGE, PageRouteType.FORWARD);
         return commandResult;

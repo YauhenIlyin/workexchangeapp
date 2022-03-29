@@ -4,8 +4,7 @@ public class Router {
 
     public enum RouteType {
         FORWARD,
-        REDIRECT,
-        ERROR;
+        REDIRECT;
     }
 
     private RouteType routeType;

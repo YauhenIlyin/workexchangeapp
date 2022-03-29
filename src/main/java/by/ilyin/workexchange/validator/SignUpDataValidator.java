@@ -6,18 +6,36 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 
-public class RegistrationDataValidator {
+public class SignUpDataValidator {
 
-    private static RegistrationDataValidator instance;
+    private static final String EMAIL_REGEX = "^[^@]+\\@[^@]+\\.[a-zA-Z]{2,}$";
 
-    private RegistrationDataValidator() {
+    //todo правила регистрации:
+    /*
+    login - a-zA-Z !@#$%^&*? 1234567890
+    password - a-zA-Z !@#$%^&*? 1234567890  заглавные + строчные буквы
+    email - правильный email
+    в email  проверяем, чтобы была только одна @
+    (чтобы нельзя было списком передать много адресов для рассылки спама),
+    и была минимум одна точка справа hello.world.my@gmail.com - корректный.
+
+     */
+
+    private static SignUpDataValidator instance;
+
+    private SignUpDataValidator() {
     }
 
-    public static RegistrationDataValidator getInstance() {
-        return new RegistrationDataValidator();
+    public static SignUpDataValidator getInstance() {
+        return new SignUpDataValidator();
     }
 
-    public boolean validateTwoPasswords(char[] password1, char[] password2) {
+    public boolean validateLogin(char[] login) {
+        return
+        //todo patterns if need
+    }
+
+    public boolean validatePasswords(char[] password1, char[] password2) {
         return password1.equals(password2);
         //todo patterns if need
     }

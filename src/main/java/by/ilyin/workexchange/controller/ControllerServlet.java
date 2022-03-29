@@ -2,6 +2,8 @@ package by.ilyin.workexchange.controller;
 
 import by.ilyin.workexchange.controller.command.*;
 import by.ilyin.workexchange.controller.command.CommandResult;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,37 +22,41 @@ public class ControllerServlet extends HttpServlet {
     }
 
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/html");
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        processRequest(request, response);
+
+        /*response.setContentType("text/html");
 
         // Hello
         System.out.println("do in servlet");
         PrintWriter out = response.getWriter();
         out.println("<html><body>");
         out.println("<h1>" + message + "</h1>");
-        out.println("</body></html>");
+        out.println("</body></html>");*/
     }
 
     @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        System.out.println(11);
-
-        System.out.println(22);
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         processRequest(request, response);
-
-
     }
 
-    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Command command;
-        Router router;
-        SessionRequestContent sessionRequestContent;
-        CommandResult commandResult;
-        command = CommandAction.getCurrentCommand(request);
-        sessionRequestContent = new SessionRequestContent(request);
-        commandResult = command.execute(sessionRequestContent);
+    //todo обработать эксепшены
+    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        Command command = CommandFactory.getCurrentCommand(request);
+        SessionRequestContent sessionRequestContent = new SessionRequestContent(request);
+        CommandResult commandResult = command.execute(sessionRequestContent);
         commandResult.getSessionRequestContent().insertAttributesInSessionRequest(request);
-        //response.getWriter().println("fffff");
+        Router router = commandResult.getRouter();
+        String pagePath = router.getPagePath();
+        switch (router.getRouteType()) {
+            case FORWARD:
+                RequestDispatcher dispatcher = request.getRequestDispatcher(pagePath);
+                dispatcher.forward(request, response);
+                break;
+            case REDIRECT:
+                response.sendRedirect(pagePath);
+                break;
+        }
     }
 
     @Override

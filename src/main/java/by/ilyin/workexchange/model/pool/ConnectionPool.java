@@ -18,7 +18,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ConnectionPool {
-
+    //todo переделать, упростить, отрефакторить, пересмотреть
     private static ConnectionPool instance;
     private static AtomicBoolean isInitialise = new AtomicBoolean(false);
     private static Lock initializationLock = new ReentrantLock();
@@ -182,6 +182,7 @@ public class ConnectionPool {
         return currentConnectionsQueue;
     }
 
+    //todo sbConnectionCount  почему стринг билдер
     private void initializeConnectionPoolSizeParameters() throws ConnectionPoolException { //todo возможно потимизировать код без sb или вынести дублирующийся код в метод
         DatabasePropertyManager databasePropertyManager = DatabasePropertyManager.getInstance();
         char[] connectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
@@ -205,7 +206,7 @@ public class ConnectionPool {
             minConnectionPoolSize = DEFAULT_MIN_CONNECTION_POOL_SIZE;
             spareConnectionPoolSize = DEFAULT_SPARE_CONNECTION_POOL_SIZE;
         }
-        SecurityDataCleaner.cleanStringBuildersValues(sbConnectionCount, sbMinConnectionCount, sbSpareConnectionCount);
+        SecurityDataCleaner.cleanStringBuilders(sbConnectionCount, sbMinConnectionCount, sbSpareConnectionCount);
     }
 
     private void clearMainConnectionQueue() throws ConnectionPoolException {

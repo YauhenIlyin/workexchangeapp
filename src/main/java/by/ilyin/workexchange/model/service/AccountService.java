@@ -9,11 +9,14 @@ import by.ilyin.workexchange.model.entity.User;
 
 public class AccountService {
 
-    //todo
+    //todo правила регистрации:
+    /*
+    login - a-zA-Z !@#$%^&*? 1234567890
+    password - a-zA-Z !@#$%^&*? 1234567890  заглавные + строчные буквы
+    email - правильный email
+     */
     public boolean registerNewAccount(char[] login, char[] passwordFirst, char[] passwordSecond,
-
                                       String firstName, String lastName, String eMail, String mobileNumber) {
-        //return dto ??
         if (!passwordFirst.equals(passwordSecond)) {
             return false;
         }
