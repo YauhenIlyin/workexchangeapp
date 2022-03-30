@@ -165,11 +165,6 @@ public class SignUpDataValidator {
         return phoneNumberStr.length() == foundedStr.length();
     }
 
-    private boolean valueLengthValidator(String value, int minLength, int maxLength) {
-        int length = value.length();
-        return !(value == null || length < minLength || length > maxLength);
-    }
-
     private boolean valueLengthValidator(char[] value, int minLength, int maxLength) {
         return !(value == null || value.length < minLength || value.length > maxLength);
     }

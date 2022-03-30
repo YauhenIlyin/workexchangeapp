@@ -1,6 +1,7 @@
 package by.ilyin.workexchange.util;
 
 public class SecurityDataCleaner {
+
     private static final char ZERO_SIGN = '0';
 
     public static void cleanCharArrays(char[] array, char[]... arrays) {

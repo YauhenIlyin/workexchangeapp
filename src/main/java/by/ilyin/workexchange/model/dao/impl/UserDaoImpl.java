@@ -97,7 +97,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
-            SecurityDataCleaner.cleanStringBuilderValues(loginSB);
+            SecurityDataCleaner.cleanStringBuilders(loginSB);
         }
     }
 
@@ -145,7 +145,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             } catch (SQLException cause) {
                 throw new DaoException(cause);
             } finally {
-                SecurityDataCleaner.cleanStringBuilderValues(loginSB);
+                SecurityDataCleaner.cleanStringBuilders(loginSB);
             }
         } else {
             logger.log(Level.WARN, "Login, user is empty or such login is occupied.");

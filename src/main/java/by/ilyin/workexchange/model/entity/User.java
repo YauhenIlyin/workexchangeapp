@@ -20,13 +20,6 @@ import java.time.LocalDateTime;
  */
 public class User extends BaseEntity {
     /**
-     * Constant field with optimal average size StringBuilder for toString()
-     * method memory pre allocation value for User class version 1.0
-     *
-     * @see User#toString()
-     */
-
-    /**
      * User id field
      */
     private long id;
