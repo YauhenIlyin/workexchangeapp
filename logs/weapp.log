@@ -1,0 +1,1 @@
+2022-04-02 19:02:48-826 [30028] [http-nio-8080-exec-5] ERROR model.pool.ConnectionPool Unable to initialize connection pool. The queue has the wrong number of connections.

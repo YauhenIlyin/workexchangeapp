@@ -31,6 +31,8 @@ public class SignUpDataValidator {
     private final int MAX_PASSWORD_LENGTH = 32;
     private final int MAX_EMAIL_LENGTH = 60;
     private final int MAX_NUMBER_LENGTH = 30;
+    private final int MIN_FIRST_LAST_NAME_LENGTH = 1;
+    private final int MAX_FIRST_LAST_NAME_LENGTH = 14;
 
     //todo правила регистрации:
     /*
@@ -57,7 +59,7 @@ public class SignUpDataValidator {
     }
 
     public boolean validateLogin(char[] login) {
-        if (!valueLengthValidator(login, MIN_LOGIN_LENGTH, MAX_LOGIN_LENGTH)) {
+        if (!charArrValueLengthValidator(login, MIN_LOGIN_LENGTH, MAX_LOGIN_LENGTH)) {
             return false;
         }
         int lowerCaseLetterCount = 0;
@@ -82,15 +84,17 @@ public class SignUpDataValidator {
         return isCorrectLogin;
     }
 
-    public boolean validatePasswords(char[] passwordFirst, char[] passwordSecond) {
-        if (passwordFirst == null || passwordSecond == null || passwordFirst.equals(passwordSecond)
-                || !valueLengthValidator(passwordFirst, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH)) {
+    public boolean validatePasswordsForEquals(char[] passwordFirst, char[] passwordSecond) {
+        if (passwordFirst == null || passwordSecond == null || passwordFirst.equals(passwordSecond)) {
             return false;
         }
-        return validatePassword(passwordFirst);
+        return true;
     }
 
     public boolean validatePassword(char[] password) {
+        if (!charArrValueLengthValidator(password, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH)) {
+            return false;
+        }
         int lowerCaseLetterCount = 0;
         int upperCaseLetterCount = 0;
         int specialSignCount = 0;
@@ -165,7 +169,21 @@ public class SignUpDataValidator {
         return phoneNumberStr.length() == foundedStr.length();
     }
 
-    private boolean valueLengthValidator(char[] value, int minLength, int maxLength) {
-        return !(value == null || value.length < minLength || value.length > maxLength);
+    public boolean validateFirstLastName(String firstName, String lastName) {
+        if (firstName == null || lastName == null ||
+                firstName.length() > MAX_FIRST_LAST_NAME_LENGTH || lastName.length() > MAX_FIRST_LAST_NAME_LENGTH) {
+            return false;
+        }
+        int firstNameReallyLength = firstName.trim().length();
+        int lastNameReallyLength = lastName.trim().length();
+        return !(firstNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH || lastNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH);
+    }
+
+    private boolean charArrValueLengthValidator(char[] value, int minLength, int maxLength) {
+        return value != null && value.length >= minLength && value.length <= maxLength;
+    }
+
+    private boolean stringValueLengthValidator(String value, int minLength, int maxLength) {
+        return value != null && value.length() >= minLength && value.length() <= maxLength;
     }
 }

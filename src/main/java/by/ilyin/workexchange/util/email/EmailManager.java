@@ -11,6 +11,30 @@ import java.util.Properties;
 
 public class EmailManager {
 
+    private static final String SEND_FROM = "ilyin.testemail@gmail.com";
+    private static final String SERVER_ADDRESS = "http://localhost:8080/workexchangeapp_war_exploded/";
+
+    public void sendActivationMail(String sendTo, String activationCode) {
+        String host = "smtp.gmail.com";
+        Properties properties = System.getProperties();
+        properties.setProperty("mail.smtp.host", host);
+        properties.setProperty("mail.smtp.port", "465"); //587 tls //465
+        properties.setProperty("mail.smtp.auth", "true");
+        properties.setProperty("mail.smtp.ssl.enable", "true");
+        Authenticator auth = new EmailAuthenticator("ilyin.testemail", "1991testpass1");
+        Session session = Session.getDefaultInstance(properties, auth);
+        MimeMessage mimeMessage = new MimeMessage(session);
+        try {
+            mimeMessage.setFrom(SEND_FROM);
+            mimeMessage.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(sendTo));
+            mimeMessage.setSubject("it set subject test string");
+            mimeMessage.setText(SERVER_ADDRESS + "?command=activation&activationCode=" + activationCode);
+            Transport.send(mimeMessage);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void sendMail(String email) {
         //String recipientEmail
         String from = "ilyin.testemail@gmail.com";         // sender email

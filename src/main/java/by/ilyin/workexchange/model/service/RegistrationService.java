@@ -27,7 +27,7 @@ public class RegistrationService {
         entityTransaction.initTransaction((AbstractDao) userDao);
         try {
             userDao.isFreeAccountLogin(login);
-            userDao.addUserAccount(user, login);
+            userDao.addUserAccountWithoutPassword(user, login);
             userDao.addUserAccountPasswordByLogin(login, passwordFirst);
             entityTransaction.commit();
             entityTransaction.endTransaction();

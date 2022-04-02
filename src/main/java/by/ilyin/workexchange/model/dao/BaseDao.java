@@ -21,8 +21,6 @@ public interface BaseDao<K, T extends BaseEntity> { //todo проверить м
 
     Optional<T> findEntityById(K id) throws DaoException;
 
-    boolean addEntity(T t) throws DaoException;
-
     boolean deleteEntity(T t) throws DaoException;
 
     boolean deleteEntityById(K id) throws DaoException;

@@ -8,12 +8,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Level;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 @WebServlet(name = "ControllerServlet", urlPatterns = "/controller")
 public class ControllerServlet extends HttpServlet {
+
+    private static Logger logger = LogManager.getLogger();
 
     private String message;
 
@@ -38,6 +42,8 @@ public class ControllerServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         processRequest(request, response);
+        System.out.println("dopost");
+        logger.info("postRequest");
     }
 
     //todo обработать эксепшены

@@ -45,6 +45,7 @@ public class ConnectionPool {
     private static Logger logger = LogManager.getLogger();
 
     private ConnectionPool() throws ConnectionPoolException { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++start created pool");
         if (instance != null) {
             throw new RuntimeException("Reflection API not allowed. Cannot create second instance.");
         }
@@ -55,9 +56,11 @@ public class ConnectionPool {
         freeConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
         busyConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
         initialiseConnectionQueue(freeConnectionsQueue, connectionPoolSize);
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++ pool created");
     }
 
     public static ConnectionPool getInstance() throws ConnectionPoolException {
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++ get instance start created");
         if (!isInitialise.get()) {
             initializationLock.lock();
             try {
@@ -68,6 +71,7 @@ public class ConnectionPool {
             } finally {
                 initializationLock.unlock();
             }
+            System.out.println("+++++++++++++++++++++++++++++++++++++++++++ get instance end");
         }
         return instance;
     }
@@ -157,6 +161,7 @@ public class ConnectionPool {
         Connection connection;
         int initialisationCounter = 0;
         while (initialisationCounter < DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME) {
+            System.out.println("hello1"); //todo
             int currentMaxSize = size - currentConnectionsQueue.size();
             for (int currentConnectionCount = 0; currentConnectionCount < currentMaxSize; ++currentConnectionCount) {
                 connection = null;
@@ -173,6 +178,7 @@ public class ConnectionPool {
             if (currentConnectionsQueue.size() == size) {
                 break;
             }
+            ++initialisationCounter;
         }
         if (currentConnectionsQueue.size() < DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE) {
             String message = "Unable to initialize connection pool. The queue has the wrong number of connections.";

@@ -28,7 +28,8 @@ class DatabasePropertyManager {
     /**
      * Default database .property file relative path constant field.
      */
-    private final String DATABASE_PROPERTY_FILE_PATH = "data/config.properties";
+    private final String DATABASE_PROPERTY_FILE_PATH = "./src/main/resources/data/config.properties";
+    private final String DATABASE_PROPERTY_BUNDLE_FILE_PATH = "data/config";
     /**
      * Field containing ResourceBundle object for accessing database .property file.
      */
@@ -43,12 +44,13 @@ class DatabasePropertyManager {
      */
     private DatabasePropertyManager() throws ConnectionPoolException {
         FileValidator fileValidator = new FileValidator();
-        if (!fileValidator.validateTxtFile(DATABASE_PROPERTY_FILE_PATH)) {
+        //todo поправить пути
+        if (!fileValidator.validateTxtFile("E:\\programming\\epam_web\\workexchangeapp\\src\\main\\resources\\data\\config.properties")) {
             String message = "Database .property file not exists.";
             logger.log(Level.ERROR, message);
             throw new ConnectionPoolException(message);
         }
-        databaseResourceBundle = ResourceBundle.getBundle(DATABASE_PROPERTY_FILE_PATH);
+        databaseResourceBundle = ResourceBundle.getBundle(DATABASE_PROPERTY_BUNDLE_FILE_PATH);
         logger.log(Level.INFO, "Database property file connected successfully.");
     }
 

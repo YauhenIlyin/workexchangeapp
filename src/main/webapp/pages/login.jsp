@@ -29,5 +29,7 @@
 <form action="pages/registration.jsp">
     <input type="submit" name="" value="Register new account">
 </form>
+<%= application.getServerInfo() %><br>
+ <%= application.getMajorVersion() %>.<%= application.getMinorVersion() %>
 </body>
 </html>

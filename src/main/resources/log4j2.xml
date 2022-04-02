@@ -1,47 +1,53 @@
 <?xml  version="1.0" encoding="UTF-8"?>
 <Configuration monitorInterval="85400" status="ERROR">
-    <Property>
+    <Properties>
         <property name="pattern_log_txt_file">
-            %d{yyyy-MM-dd HH:mm:ss:SSS} [%r] [%t] %-5level %logger{7}: %msg%n
+            %d{yyyy-MM-dd HH-mm-ss-SSS} [%r] [%t] %-3level %logger{-3} %msg%n
         </property>
         <property name="pattern_sys_console">
-            %d{HH:mm:ss:SSS} [%t] %-5level %logger{7}: %msg%n
+            %d{HH:mm:ss-SSS} [%t] %-3level %logger{-3} %msg%n
         </property>
         <property name="pattern_txt_file_archive_name">
-            logs/$${date:yyyy-MM}/weapp-%d{MM-dd-yyyy}-%i.log.zip
+            logs/$${date-yyyy-MM}/weapp-%d{MM-dd-yyyy}-%i.log.zip
         </property>
         <property name="pattern_current_date">
             %d{yyyy_MM_dd HH_mm_ss}
         </property>
         <property name="log_dir_name">
-            logs
+            ./logs
         </property>
         <property name="log_file_name">
             weapp.log
         </property>
-    </Property>
+        <property name="_development_log_path">
+            /logs/weapp.log
+        </property>
+    </Properties>
     <Appenders>
         <Console name="SystemConsoleAppender" target="SYSTEM_OUT">
             <PatternLayout pattern="${pattern_sys_console}"/>
         </Console>
+        <!-- "$${log_dir_name}/{log_file_name}"  fileName -->
+        <!--${sys:catalina.home}/logs/weapp.log    для деплоя в tomcat-->
         <RollingFile
                 name="RollingTxtFileAppender"
-                fileName="$${log_dir_name}/{log_file_name}"
+                fileName="E:/programming/epam_web/workexchangeapp/logs/weapp.log"
                 filePattern="${pattern_log_txt_file}"
                 ignoreExceptions="false">
             <PatternLayout>
-                <Pattern>%d{yyyy-MM-dd HH:mm:ss:SSS} [%r] [%t] %-5level %logger{7}: %msg%n</Pattern>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss-SSS} [%r] [%t] %-5level %logger{-3} %msg%n</Pattern>
             </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+                <SizeBasedTriggeringPolicy size="15MB"/>
+            </Policies>
         </RollingFile>
-        <Policies>
-            <SizeBasedTriggeringPolicy size="15MB"/>
-        </Policies>
         <DefaultRolloverStrategy max="12"/>
     </Appenders>
     <Loggers>
         <Root level="DEBUG">
-            <AppenderRef ref="RollingTxtFileAppender"/>
-            <AppenderRef ref="SystemConsoleAppender"/>
+            <AppenderRef ref="RollingTxtFileAppender" level="INFO"/>
+            <AppenderRef ref="SystemConsoleAppender" level="DEBUG"/>
         </Root>
     </Loggers>
 </Configuration>

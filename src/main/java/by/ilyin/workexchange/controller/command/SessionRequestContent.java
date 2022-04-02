@@ -24,6 +24,7 @@ public class SessionRequestContent {
     private HashMap<String, Object> requestAttributes;
     private HashMap<String, Object> sessionAttributes;
     private boolean isInvalidateSession = false;
+    private boolean isCurrentResultSuccessful = true;
 
     public SessionRequestContent(HttpServletRequest request) {
         Iterator<String> iterator;
@@ -98,6 +99,14 @@ public class SessionRequestContent {
         SessionRequestContent.securityParameterNames = securityParameterNames;
     }
 
+    public HashMap<String, char[]> getSecurityParameters() {
+        return securityParameters;
+    }
+
+    public void setSecurityParameters(HashMap<String, char[]> securityParameters) {
+        this.securityParameters = securityParameters;
+    }
+
     public HashMap<String, String[]> getRequestParameters() {
         return requestParameters;
     }
@@ -122,14 +131,6 @@ public class SessionRequestContent {
         this.sessionAttributes = sessionAttributes;
     }
 
-    public HashMap<String, char[]> getSecurityParameters() {
-        return securityParameters;
-    }
-
-    public void setSecurityParameters(HashMap<String, char[]> securityParameters) {
-        this.securityParameters = securityParameters;
-    }
-
     public boolean isInvalidateSession() {
         return isInvalidateSession;
     }
@@ -137,4 +138,13 @@ public class SessionRequestContent {
     public void setInvalidateSession(boolean invalidateSession) {
         isInvalidateSession = invalidateSession;
     }
+
+    public boolean isCurrentResultSuccessful() {
+        return isCurrentResultSuccessful;
+    }
+
+    public void setCurrentResultSuccessful(boolean currentResultSuccessful) {
+        isCurrentResultSuccessful = currentResultSuccessful;
+    }
+
 }
