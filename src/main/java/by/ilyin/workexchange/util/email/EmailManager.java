@@ -6,6 +6,8 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Properties;
 
@@ -13,6 +15,8 @@ public class EmailManager {
 
     private static final String SEND_FROM = "ilyin.testemail@gmail.com";
     private static final String SERVER_ADDRESS = "http://localhost:8080/workexchangeapp_war_exploded/";
+
+    private static Logger logger = LogManager.getLogger();
 
     public void sendActivationMail(String sendTo, String activationCode) {
         String host = "smtp.gmail.com";
@@ -30,7 +34,9 @@ public class EmailManager {
             mimeMessage.setSubject("it set subject test string");
             mimeMessage.setText(SERVER_ADDRESS + "?command=activation&activationCode=" + activationCode);
             Transport.send(mimeMessage);
+            logger.debug("activation email sent");
         } catch (MessagingException e) {
+            logger.warn("error sending activation email");
             e.printStackTrace();
         }
     }

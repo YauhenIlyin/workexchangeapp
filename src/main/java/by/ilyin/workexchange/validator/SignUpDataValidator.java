@@ -5,6 +5,8 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +14,8 @@ import java.util.regex.Pattern;
 public class SignUpDataValidator {
 
     private static SignUpDataValidator instance;
+
+    private static Logger logger = LogManager.getLogger();
 
     private final String EMAIL_REGEX = "^[^@]+\\@[^@]+\\.[a-zA-Z]{2,}$";
     private final String PHONE_NUMBER_REGEX = "^\\+?\\d+$";
@@ -73,7 +77,7 @@ public class SignUpDataValidator {
                 ++upperCaseLetterCount;
             } else if (CHAR_CODE_a_SIGN <= ch && CHAR_CODE_z_SIGN >= ch) {
                 ++lowerCaseLetterCount;
-            } else if (CHAR_CODE_0_SIGN > ch || (CHAR_CODE_9_SIGN < ch && ch != CHAR_CODE_UNDERSCORE_SIGN)) {
+            } else if (CHAR_CODE_0_SIGN > ch || (CHAR_CODE_9_SIGN < ch && ch != CHAR_CODE_UNDERSCORE_SIGN)) { //todo ??
                 isCorrectLogin = false;
             }
             ++index;
@@ -81,13 +85,16 @@ public class SignUpDataValidator {
         if (lowerCaseLetterCount == 0 || upperCaseLetterCount == 0) {
             isCorrectLogin = false;
         }
+        logger.debug("validateLogin(): " + isCorrectLogin);
         return isCorrectLogin;
     }
 
     public boolean validatePasswordsForEquals(char[] passwordFirst, char[] passwordSecond) {
         if (passwordFirst == null || passwordSecond == null || passwordFirst.equals(passwordSecond)) {
+            logger.debug("two passwords not equal");
             return false;
         }
+        logger.debug("two passwords is equal");
         return true;
     }
 
@@ -117,10 +124,12 @@ public class SignUpDataValidator {
         if (upperCaseLetterCount == 0 || lowerCaseLetterCount == 0 || specialSignCount == 0) {
             isCorrectPassword = false;
         }
+        logger.debug("validatePassword(): " + isCorrectPassword);
         return isCorrectPassword;
     }
 
     public boolean validateJakartaEmail(String emailStr) {
+        //todo проверка на null  и длину
         boolean isValid = true;
         try {
             InternetAddress emailAddress = new InternetAddress(emailStr);
@@ -128,24 +137,29 @@ public class SignUpDataValidator {
         } catch (AddressException cause) {
             isValid = false;
         }
+        logger.debug("validateJakartaEmail(): " + isValid);
         return isValid;
     }
 
     public boolean validateRegexEmail(String emailStr) {
+        boolean isValid;
         String foundedStr = "";
-        if (emailStr == null || emailStr.length() <= MAX_EMAIL_LENGTH) {
-            return false;
+        if (emailStr == null || emailStr.length() > MAX_EMAIL_LENGTH) {
+            isValid = false;
         } else {
             Pattern pattern = Pattern.compile(EMAIL_REGEX);
             Matcher matcher = pattern.matcher(emailStr);
             while (matcher.find()) {
                 foundedStr = emailStr.substring(matcher.start(), matcher.end());
             }
+            isValid = emailStr.length() == foundedStr.length();
         }
-        return emailStr.length() == foundedStr.length();
+        logger.debug("validateRegexEmail(): " + isValid);
+        return isValid;
     }
 
     public boolean validateGooglePhoneNumber(String phoneNumberStr) {
+        //todo проверка на null  и длину
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         Phonenumber.PhoneNumber phone = null;
         try {
@@ -153,20 +167,26 @@ public class SignUpDataValidator {
         } catch (NumberParseException e) {
             e.printStackTrace(); //todo
         }
-        return phoneNumberUtil.isValidNumber(phone);
+        boolean isValid = phoneNumberUtil.isValidNumber(phone);
+        logger.debug("validateGooglePhoneNumber: " + isValid);
+        return isValid;
     }
 
     public boolean validateRegexPhoneNumber(String phoneNumberStr) {
-        if (phoneNumberStr == null || phoneNumberStr.length() <= MAX_NUMBER_LENGTH) {
-            return false;
+        boolean isValid;
+        if (phoneNumberStr == null || phoneNumberStr.length() > MAX_NUMBER_LENGTH) {
+            isValid = false;
+        } else {
+            String foundedStr = "";
+            Pattern pattern = Pattern.compile(PHONE_NUMBER_REGEX);
+            Matcher matcher = pattern.matcher(phoneNumberStr);
+            while (matcher.find()) {
+                foundedStr = phoneNumberStr.substring(matcher.start(), matcher.end());
+            }
+            isValid = phoneNumberStr.length() == foundedStr.length();
         }
-        String foundedStr = "";
-        Pattern pattern = Pattern.compile(PHONE_NUMBER_REGEX);
-        Matcher matcher = pattern.matcher(phoneNumberStr);
-        while (matcher.find()) {
-            foundedStr = phoneNumberStr.substring(matcher.start(), matcher.end());
-        }
-        return phoneNumberStr.length() == foundedStr.length();
+        logger.debug("validateRegexPhoneNumber(): " + isValid);
+        return isValid;
     }
 
     public boolean validateFirstLastName(String firstName, String lastName) {
@@ -176,7 +196,9 @@ public class SignUpDataValidator {
         }
         int firstNameReallyLength = firstName.trim().length();
         int lastNameReallyLength = lastName.trim().length();
-        return !(firstNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH || lastNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH);
+        boolean isValid = !(firstNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH || lastNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH);
+        logger.debug("validateFirstLastName(): " + isValid);
+        return isValid;
     }
 
     private boolean charArrValueLengthValidator(char[] value, int minLength, int maxLength) {

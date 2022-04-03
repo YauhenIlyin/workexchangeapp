@@ -27,7 +27,7 @@
         <Console name="SystemConsoleAppender" target="SYSTEM_OUT">
             <PatternLayout pattern="${pattern_sys_console}"/>
         </Console>
-        <!-- "$${log_dir_name}/{log_file_name}"  fileName -->
+        <!--"$${log_dir_name}/{log_file_name}"  fileName -->
         <!--${sys:catalina.home}/logs/weapp.log    для деплоя в tomcat-->
         <RollingFile
                 name="RollingTxtFileAppender"

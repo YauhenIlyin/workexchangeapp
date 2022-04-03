@@ -8,7 +8,7 @@ public class SecurityDataCleaner {
         if (array != null) {
             cleanCharArrayValues(array);
         }
-        for (int arrObjIndex = 0; arrObjIndex < array.length; ++arrObjIndex) {
+        for (int arrObjIndex = 0; arrObjIndex < arrays.length; ++arrObjIndex) {
             if (arrays[arrObjIndex] != null) {
                 cleanCharArrayValues(arrays[arrObjIndex]);
             }

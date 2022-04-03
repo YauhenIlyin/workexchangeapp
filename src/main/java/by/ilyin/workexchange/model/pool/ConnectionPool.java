@@ -23,6 +23,8 @@ public class ConnectionPool {
     private static AtomicBoolean isInitialise = new AtomicBoolean(false);
     private static Lock initializationLock = new ReentrantLock();
     private static Lock serviceLock = new ReentrantLock();
+    private static AtomicBoolean isConnectionPoolInService = new AtomicBoolean(false);
+
     private final String PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE = "db.connection_pool_size";
     private final String PROPERTY_KEY_WORD_MIN_CONNECTION_POOL_SIZE = "db.min_connection_pool_size";
     private final String PROPERTY_KEY_WORD_SPARE_CONNECTION_POOL_SIZE = "db.spare_connection_pool_size";
@@ -31,7 +33,7 @@ public class ConnectionPool {
     private int spareConnectionPoolSize;
     private int ATTEMPT_WAIT_BE_RELEASED_CONNECTIONS = 40;
     private int SLEEP_TIME_WAIT_BE_RELEASED_CONNECTIONS_IN_ONE_ATTEMPT = 250;
-    private static final int DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME = 3;
+    //private static final int DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME = 3; //todo
     private static final int DEFAULT_CONNECTION_POOL_SIZE = 14;
     private static final int DEFAULT_MIN_CONNECTION_POOL_SIZE = 8;
     private static final int DEFAULT_SPARE_CONNECTION_POOL_SIZE = 8;
@@ -40,17 +42,16 @@ public class ConnectionPool {
     private BlockingQueue<Connection> freeConnectionsQueue;
     private BlockingQueue<Connection> busyConnectionsQueue;
 
-    private static AtomicBoolean isConnectionPoolInService = new AtomicBoolean(false);
-
     private static Logger logger = LogManager.getLogger();
 
     private ConnectionPool() throws ConnectionPoolException { //todo приостановка, пересчет конекшенов и досоздание новых, если какие-то отвалились в процессе
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++start created pool");
         if (instance != null) {
+            logger.error("Unauthorized pool creation attempt. RuntimeException.");
             throw new RuntimeException("Reflection API not allowed. Cannot create second instance.");
         }
         initializeConnectionPoolSizeParameters();
         if (this.connectionPoolSize < minConnectionPoolSize) { //todo
+            logger.error("incorrect count of connections. RuntimeException.");
             throw new RuntimeException("ConnectionPool.class: constructor(): connection creating error. less than 4"); //todo
         }
         freeConnectionsQueue = new LinkedBlockingQueue<>(connectionPoolSize);
@@ -60,9 +61,9 @@ public class ConnectionPool {
     }
 
     public static ConnectionPool getInstance() throws ConnectionPoolException {
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++ get instance start created");
         if (!isInitialise.get()) {
             initializationLock.lock();
+            logger.debug("getInstance() start created instance");
             try {
                 if (instance == null) {
                     instance = new ConnectionPool();
@@ -70,8 +71,8 @@ public class ConnectionPool {
                 }
             } finally {
                 initializationLock.unlock();
+                logger.debug("getInstance() end created instance");
             }
-            System.out.println("+++++++++++++++++++++++++++++++++++++++++++ get instance end");
         }
         return instance;
     }
@@ -119,6 +120,7 @@ public class ConnectionPool {
     @Override
     public Object clone() throws CloneNotSupportedException {
         if (instance != null) {
+            logger.error("Unauthorized pool creation attempt with clone(). CloneNotSupportedException.");
             throw new CloneNotSupportedException("Cloning not allowed. Cannot create second instance.");
         }
         return super.clone();
@@ -153,43 +155,39 @@ public class ConnectionPool {
 
 
     private BlockingQueue<Connection> initialiseConnectionQueue(BlockingQueue<Connection> currentConnectionsQueue, int size) throws ConnectionPoolException {
+        logger.debug("start initialiseConnectionQueue()");
         if (currentConnectionsQueue == null) {
             currentConnectionsQueue = new LinkedBlockingQueue<>(size);
         }
         MySqlConnectionFactory mySqlConnectionFactory;
         mySqlConnectionFactory = MySqlConnectionFactory.getInstance();
         Connection connection;
-        int initialisationCounter = 0;
-        while (initialisationCounter < DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME) {
-            System.out.println("hello1"); //todo
-            int currentMaxSize = size - currentConnectionsQueue.size();
-            for (int currentConnectionCount = 0; currentConnectionCount < currentMaxSize; ++currentConnectionCount) {
-                connection = null;
-                try {
-                    connection = mySqlConnectionFactory.getProxyConnection();
-                } catch (ConnectionPoolException cause) {
-                    logger.log(Level.WARN, "Connection number " + (currentConnectionCount + 1) + " is not created.");
-                    --currentMaxSize;
-                }
-                if (connection != null) {
-                    freeConnectionsQueue.add(connection);
-                }
+        for (int currentConnectionCount = 0; currentConnectionCount < size; ++currentConnectionCount) {
+            logger.debug("initialiseConnectionQueue() Get next connection for pool");
+            connection = null;
+            try {
+                connection = mySqlConnectionFactory.getProxyConnection();
+            } catch (ConnectionPoolException cause) {
+                logger.log(Level.WARN, "Connection number " + (currentConnectionCount + 1) + " is not created.");
+                cause.printStackTrace();
             }
-            if (currentConnectionsQueue.size() == size) {
-                break;
+            if (connection != null) {
+                logger.debug("add connection to currentConnectionQueue");
+                currentConnectionsQueue.add(connection);
             }
-            ++initialisationCounter;
         }
         if (currentConnectionsQueue.size() < DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE) {
             String message = "Unable to initialize connection pool. The queue has the wrong number of connections.";
             logger.log(Level.ERROR, message);
             throw new RuntimeException(message);
         }
+        mySqlConnectionFactory.destroyMySqlConnectionFactory();
         return currentConnectionsQueue;
     }
 
     //todo sbConnectionCount  почему стринг билдер
     private void initializeConnectionPoolSizeParameters() throws ConnectionPoolException { //todo возможно потимизировать код без sb или вынести дублирующийся код в метод
+        logger.debug("start initialization database property values");
         DatabasePropertyManager databasePropertyManager = DatabasePropertyManager.getInstance();
         char[] connectionPoolSizeArr = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_CONNECTION_POOL_SIZE);
         StringBuilder sbConnectionCount = new StringBuilder();
@@ -212,7 +210,9 @@ public class ConnectionPool {
             minConnectionPoolSize = DEFAULT_MIN_CONNECTION_POOL_SIZE;
             spareConnectionPoolSize = DEFAULT_SPARE_CONNECTION_POOL_SIZE;
         }
+        logger.debug("poolSize:" + connectionPoolSize + " minPoolSize:" + minConnectionPoolSize + " sparePoolSize:" + spareConnectionPoolSize);
         SecurityDataCleaner.cleanStringBuilders(sbConnectionCount, sbMinConnectionCount, sbSpareConnectionCount);
+        logger.debug("end of initialization database property values");
     }
 
     private void clearMainConnectionQueue() throws ConnectionPoolException {
@@ -254,5 +254,44 @@ public class ConnectionPool {
         //todo  недоделано, возможно есть ошибки.
         //todo  возвращение пересозданного пула
     }
+
+    /*
+    private BlockingQueue<Connection> initialiseConnectionQueue(BlockingQueue<Connection> currentConnectionsQueue, int size) throws ConnectionPoolException {
+        logger.debug("start initialiseConnectionQueue()");
+        if (currentConnectionsQueue == null) {
+            currentConnectionsQueue = new LinkedBlockingQueue<>(size);
+        }
+        MySqlConnectionFactory mySqlConnectionFactory;
+        mySqlConnectionFactory = MySqlConnectionFactory.getInstance();
+        Connection connection;
+        int initialisationCounter = 0;
+        while (initialisationCounter < DEFAULT_MAX_NUMBER_OF_INITIALIZATIONS_AT_TIME) {
+            System.out.println("hello1"); //todo
+            int currentMaxSize = size - currentConnectionsQueue.size();
+            for (int currentConnectionCount = 0; currentConnectionCount < currentMaxSize; ++currentConnectionCount) {
+                connection = null;
+                try {
+                    connection = mySqlConnectionFactory.getProxyConnection();
+                } catch (ConnectionPoolException cause) {
+                    logger.log(Level.WARN, "Connection number " + (currentConnectionCount + 1) + " is not created.");
+                    --currentMaxSize;
+                }
+                if (connection != null) {
+                    freeConnectionsQueue.add(connection);
+                }
+            }
+            if (currentConnectionsQueue.size() == size) {
+                break;
+            }
+            ++initialisationCounter;
+        }
+        if (currentConnectionsQueue.size() < DEFAULT_MIN_EFFECTIVE_CONNECTION_POOL_SIZE) {
+            String message = "Unable to initialize connection pool. The queue has the wrong number of connections.";
+            logger.log(Level.ERROR, message);
+            throw new RuntimeException(message);
+        }
+        return currentConnectionsQueue;
+    }
+     */
 
 }

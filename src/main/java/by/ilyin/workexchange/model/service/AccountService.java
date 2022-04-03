@@ -13,11 +13,15 @@ import by.ilyin.workexchange.model.evidence.InfoMessagesKeyWords;
 import by.ilyin.workexchange.util.DateTimeManager;
 import by.ilyin.workexchange.util.email.EmailManager;
 import by.ilyin.workexchange.validator.SignUpDataValidator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 import java.util.HashMap;
 
 public class AccountService {
+
+    private static Logger logger = LogManager.getLogger();
 
     //todo правила регистрации:
     /*
@@ -26,36 +30,38 @@ public class AccountService {
     email - правильный email
      */
     public SessionRequestContent registerNewAccount(SessionRequestContent sessionRequestContent) throws DaoException {
-        System.out.println("========================================register new account");
+        logger.debug("start registerNewAccount()");
         boolean isValidData = validateRegistrationData(sessionRequestContent).isCurrentResultSuccessful();
-        System.out.println("========================================check login");
-        boolean isFreeLogin = checkAccountLogin(sessionRequestContent).isCurrentResultSuccessful();
-        if (isValidData && isFreeLogin) {
-            HashMap<String, String[]> paramMap = sessionRequestContent.getRequestParameters();
-            HashMap<String, char[]> securityParamMap = sessionRequestContent.getSecurityParameters();
-            UserDao userDao = new UserDaoImpl();
-            EntityTransaction transaction = new EntityTransaction();
-            transaction.initTransaction((AbstractDao) userDao);
-            User user = new User();
-            user.createInnerBuilder()
-                    .setFirstName(paramMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0])
-                    .setLastName(paramMap.get(RequestParameterName.SIGN_UP_LAST_NAME)[0])
-                    .setEmail(paramMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0])
-                    .setMobileNumber(paramMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0])
-                    .setAccountStatus(AccountStatus.WAITING_ACTIVATION)
-                    .setRegistrationDate(DateTimeManager.getInstance().getCurrentLocalDateTime());
-            char[] login = securityParamMap.get(RequestParameterName.SIGN_UP_LOGIN);
-            char[] password = securityParamMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST);
-            System.out.println("========================================addUser");
-            userDao.addUserAccountWithoutPassword(user, login);
-            System.out.println("========================================add password");
-            userDao.addUserAccountPasswordByLogin(login, password);
-            String activationCode = userDao.getActivationCodeByUserLogin(login);
-            sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_ACTIVATION_CODE, activationCode);
-            sendActivationMail(sessionRequestContent);
-            transaction.commit();
-            transaction.endTransaction();
+        logger.debug("registerNewAccount() isValidData: " + isValidData);
+        if (isValidData) {
+            boolean isFreeLogin = checkAccountLogin(sessionRequestContent).isCurrentResultSuccessful();
+            logger.debug("is free login: " + isFreeLogin);
+            if (isFreeLogin) {
+                HashMap<String, String[]> paramMap = sessionRequestContent.getRequestParameters();
+                HashMap<String, char[]> securityParamMap = sessionRequestContent.getSecurityParameters();
+                UserDao userDao = new UserDaoImpl();
+                EntityTransaction transaction = new EntityTransaction();
+                transaction.initTransaction((AbstractDao) userDao);
+                User user = new User();
+                user.createInnerBuilder()
+                        .setFirstName(paramMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0])
+                        .setLastName(paramMap.get(RequestParameterName.SIGN_UP_LAST_NAME)[0])
+                        .setEmail(paramMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0])
+                        .setMobileNumber(paramMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0])
+                        .setAccountStatus(AccountStatus.WAITING_ACTIVATION)
+                        .setRegistrationDate(DateTimeManager.getInstance().getCurrentLocalDateTime());
+                char[] login = securityParamMap.get(RequestParameterName.SIGN_UP_LOGIN);
+                char[] password = securityParamMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST);
+                userDao.addUserAccountWithoutPassword(user, login);
+                userDao.addUserAccountPasswordByLogin(login, password);
+                String activationCode = userDao.getActivationCodeByUserLogin(login);
+                sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_ACTIVATION_CODE, activationCode);
+                sendActivationMail(sessionRequestContent);
+                transaction.commit();
+                transaction.endTransaction();
+            }
         }
+        logger.debug("registerNewAccount() result: " + sessionRequestContent.isCurrentResultSuccessful());
         return sessionRequestContent;
     }
 
@@ -100,7 +106,7 @@ public class AccountService {
 
     public SessionRequestContent checkAccountLogin(SessionRequestContent sessionRequestContent) throws DaoException {
         char[] login = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_UP_LOGIN);
-        if (login != null) {
+        if (login != null && login.length > 0) {
             UserDao userDao = new UserDaoImpl();
             EntityTransaction transaction = new EntityTransaction();
             transaction.initTransaction((AbstractDao) userDao);

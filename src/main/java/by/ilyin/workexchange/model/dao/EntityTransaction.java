@@ -15,10 +15,12 @@ public class EntityTransaction<T extends AbstractDao> {
     private static final Logger logger = LogManager.getLogger();
 
     public void initTransaction(T dao, T... daoArr) {
+        logger.debug("start initTransaction()");
         try {
             if (connection == null) {
                 connection = ConnectionPool.getInstance().takeConnection();
             }
+            logger.debug("connection entered transaction");
             connection.setAutoCommit(false);
         } catch (SQLException cause) {
             cause.printStackTrace();//todo
@@ -28,6 +30,7 @@ public class EntityTransaction<T extends AbstractDao> {
         dao.setConnection(connection);
         for (T currentDao : daoArr) {
             currentDao.setConnection(connection);
+            logger.debug("connection set in dao: " + currentDao.getClass().getSimpleName());
         }
     }
 
@@ -41,6 +44,7 @@ public class EntityTransaction<T extends AbstractDao> {
         } catch (SQLException cause) {
             //todo
         }
+        logger.debug("end transaction");
     }
 
     public void commit() {
@@ -49,7 +53,7 @@ public class EntityTransaction<T extends AbstractDao> {
         } catch (SQLException throwables) {
             throwables.printStackTrace(); //todo
         }
-
+        logger.debug("commit transaction");
     }
 
     public void rollback() {
@@ -58,6 +62,7 @@ public class EntityTransaction<T extends AbstractDao> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        logger.debug("rollback transaction");
     }
 
 }

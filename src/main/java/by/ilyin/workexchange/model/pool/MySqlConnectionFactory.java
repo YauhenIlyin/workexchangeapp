@@ -1,8 +1,7 @@
 package by.ilyin.workexchange.model.pool;
 
 import by.ilyin.workexchange.exception.ConnectionPoolException;
-import by.ilyin.workexchange.exception.DaoException;
-import by.ilyin.workexchange.exception.WorkExchangeAppException;
+import by.ilyin.workexchange.util.SecurityDataCleaner;
 import com.mysql.cj.jdbc.Driver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,7 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-class MySqlConnectionFactory {
+public class MySqlConnectionFactory { //todo убрать паблик
 
     private static Logger logger = LogManager.getLogger();
     private static MySqlConnectionFactory instance;
@@ -39,20 +38,24 @@ class MySqlConnectionFactory {
             dbPassword = databasePropertyManager.getDatabasePropertyValue(PROPERTY_KEY_WORD_DB_PASSWORD);
             Driver driver = new com.mysql.cj.jdbc.Driver();
             DriverManager.registerDriver(driver);
+            logger.debug("DriverManager.registerDriver(driver) register successful");
         } catch (SQLException cause) {
-            throw new ConnectionPoolException("Driver not found... SQLException", cause);
+            String message = "Driver not found... SQLException";
+            logger.debug(message);
+            throw new ConnectionPoolException(message, cause);
         }
     }
 
     public static MySqlConnectionFactory getInstance() throws ConnectionPoolException {
         if (instance == null) {
+            logger.debug("getInstance() start of instance initialization");
             instance = new MySqlConnectionFactory();
+            logger.debug("getInstance() instance initialization complete");
         }
         return instance;
     }
 
     Connection getProxyConnection() throws ConnectionPoolException {
-        //todo clear String Builders
         StringBuilder sbUrl = new StringBuilder();
         sbUrl.append(dbAddress).append(dbPort).append('/').append(dbName);
         StringBuilder sbLogin = new StringBuilder();
@@ -60,11 +63,25 @@ class MySqlConnectionFactory {
         StringBuilder sbPassword = new StringBuilder();
         sbPassword.append(dbPassword);
         ProxyConnection proxyConnection;
+        System.out.println(sbLogin.toString() + " " + sbPassword + " " + sbUrl);
         try {
-            proxyConnection = (ProxyConnection) DriverManager.getConnection(sbUrl.toString(), sbLogin.toString(), sbPassword.toString());
+            logger.debug("getProxyConnection() start proxyConnection initialisation");
+            Connection connection = DriverManager.getConnection(sbUrl.toString(), sbLogin.toString(), sbPassword.toString());
+            proxyConnection = new ProxyConnection(connection);
+            logger.debug("getProxyConnection() proxyConnection initialisation is successful");
         } catch (SQLException cause) {
+            cause.printStackTrace();
+            logger.debug("getProxyConnection() SQLException in proxyConnection initialisation");
             throw new ConnectionPoolException("MySqlConnectionFactory: createAndGetProxyConnection: DriverManager.getConnection() SQlException", cause);
+        } finally {
+            SecurityDataCleaner.cleanStringBuilders(sbLogin, sbPassword, sbUrl);
         }
+        System.out.println(123);
         return proxyConnection;
+    }
+
+    public void destroyMySqlConnectionFactory() {
+        SecurityDataCleaner.cleanCharArrays(dbAddress, dbLogin, dbName, dbPassword, dbPort);
+        instance = null;
     }
 }

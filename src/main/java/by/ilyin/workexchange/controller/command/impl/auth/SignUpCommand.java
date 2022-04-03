@@ -8,11 +8,14 @@ import by.ilyin.workexchange.controller.evidence.PagePath;
 import by.ilyin.workexchange.controller.evidence.RequestParameterName;
 import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.model.service.AccountService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class SignUpCommand implements Command {
+
+    private static Logger logger = LogManager.getLogger();
 
     private AccountService accountService;
     private List<String> allowedRoles;
@@ -24,21 +27,24 @@ public class SignUpCommand implements Command {
 
     @Override
     public CommandResult execute(SessionRequestContent sessionRequestContent) {
-        System.out.println("========================================signUpCommand");
+        logger.debug("start execute()");
         Router router = null;
         try {
             accountService.registerNewAccount(sessionRequestContent);
             boolean result = sessionRequestContent.isCurrentResultSuccessful();
             System.out.println(sessionRequestContent.isCurrentResultSuccessful());
             if (result) {
+                logger.debug("result is successful, redirect to " + PagePath.LOGIN_PAGE);
                 router = new Router(Router.RouteType.REDIRECT, PagePath.LOGIN_PAGE);
             } else {
+                logger.debug("result is fail, forward to " + PagePath.REGISTRATION_PAGE);
                 router = new Router(Router.RouteType.FORWARD, PagePath.REGISTRATION_PAGE);
             }
         } catch (DaoException e) {
             e.printStackTrace();//todo command exception
         }
         CommandResult commandResult = new CommandResult(router, sessionRequestContent);
+        logger.debug("end execute()");
         return commandResult;
     }
 }

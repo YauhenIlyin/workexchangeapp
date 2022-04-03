@@ -17,24 +17,24 @@
     <input type="hidden" name="command" value="sign_up"/>
     <br/>
     <br/>
-    <p>login</p>
+    <p>login (6-16 symbols, 1+ 'a-z',1+ 'A-Z',0+ '0-9', 0+ '_')</p>
     <input type="text" name="login" value=""/>
     <br/>
-    <p>password</p>
+    <p>password (8-32 symbols, 1+ '!"#$%&'()*',1+ 'a-z',1+ 'A-Z',0+ '0-9', 0+ '_')</p>
     <input type="text" name="password_first" value=""/>
     <br/>
     <input type="text" name="password_second" value=""/>
     <br/>
-    <p>first name</p>
+    <p>first name (1-14 symbols)</p>
     <input type="text" name="first_name" value=""/>
     <br/>
-    <p>last name</p>
+    <p>last name (1-14 symbols)</p>
     <input type="text" name="last_name" value=""/>
     <br/>
-    <p>e-mail</p>
+    <p>e-mail (60max symbols, hello.world@mail.ru)</p>
     <input type="text" name="e_mail" value=""/>
     <br/>
-    <p>mobile number</p>
+    <p>mobile number (30max symbols, +375***, 8029***)</p>
     <input type="text" name="mobile_number" value=""/>
     <br/>
     <input type="submit" name="register"/>

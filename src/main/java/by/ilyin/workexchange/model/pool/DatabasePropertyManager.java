@@ -18,7 +18,7 @@ import java.util.ResourceBundle;
  * @author IlyinYauhen
  * @version 1.0
  */
-class DatabasePropertyManager {
+public class DatabasePropertyManager { //todo убрать public
     /**
      * A field containing an instance of the DatabasePropertyManager class.
      *
@@ -48,7 +48,7 @@ class DatabasePropertyManager {
         if (!fileValidator.validateTxtFile("E:\\programming\\epam_web\\workexchangeapp\\src\\main\\resources\\data\\config.properties")) {
             String message = "Database .property file not exists.";
             logger.log(Level.ERROR, message);
-            throw new ConnectionPoolException(message);
+            throw new RuntimeException(message);
         }
         databaseResourceBundle = ResourceBundle.getBundle(DATABASE_PROPERTY_BUNDLE_FILE_PATH);
         logger.log(Level.INFO, "Database property file connected successfully.");
@@ -62,6 +62,7 @@ class DatabasePropertyManager {
      */
     public static DatabasePropertyManager getInstance() throws ConnectionPoolException {
         if (instance == null) {
+            logger.debug("getInstance() start initialization an instance");
             instance = new DatabasePropertyManager();
             logger.log(Level.INFO, "DatabasePropertyManager instance successfully created.");
         }

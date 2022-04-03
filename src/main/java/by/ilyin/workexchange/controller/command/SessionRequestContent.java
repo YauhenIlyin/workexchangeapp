@@ -4,6 +4,8 @@ import by.ilyin.workexchange.controller.evidence.RequestParameterName;
 import by.ilyin.workexchange.util.SecurityDataCleaner;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +28,8 @@ public class SessionRequestContent {
     private boolean isInvalidateSession = false;
     private boolean isCurrentResultSuccessful = true;
 
+    private static Logger logger = LogManager.getLogger();
+
     public SessionRequestContent(HttpServletRequest request) {
         Iterator<String> iterator;
         String keyWord;
@@ -39,22 +43,14 @@ public class SessionRequestContent {
             } else {
                 requestParameters.put(keyWord, request.getParameterValues(keyWord));
             }
-        }
-        System.out.println("==============================");//todo delete
-        System.out.println("request parameters:");//todo delete
-        System.out.println(requestParameters.toString());//todo delete
-        requestAttributes = new HashMap<>();
 
+        }
+        requestAttributes = new HashMap<>();
         iterator = request.getAttributeNames().asIterator();
-        System.out.println("=============================");//todo delete
-        System.out.println("request attributes");//todo delete
         while (iterator.hasNext()) {
             keyWord = iterator.next();
-            System.out.println(keyWord + " " + request.getAttribute(keyWord));//todo delete
             requestAttributes.put(keyWord, request.getAttribute(keyWord));
         }
-        System.out.println("===============================");//todo delete
-        System.out.println("session attributes:");//todo delete
         HttpSession session = request.getSession();
         iterator = session.getAttributeNames().asIterator();
         sessionAttributes = new HashMap<>();
@@ -63,6 +59,7 @@ public class SessionRequestContent {
             System.out.println(keyWord + " " + session.getAttribute(keyWord));//todo delete
             sessionAttributes.put(keyWord, session.getAttribute(keyWord));
         }
+        logger.debug("SRC created by session: " + request.getSession().getId() + " to command: " + request.getParameter("command"));
     }
 
     //todo проверки на null во всем классе
@@ -146,5 +143,4 @@ public class SessionRequestContent {
     public void setCurrentResultSuccessful(boolean currentResultSuccessful) {
         isCurrentResultSuccessful = currentResultSuccessful;
     }
-
 }

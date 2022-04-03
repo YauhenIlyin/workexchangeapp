@@ -27,6 +27,7 @@ public class ControllerServlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        logger.debug("session:" + request.getSession().getId() + " doGet()");
         processRequest(request, response);
 
         /*response.setContentType("text/html");
@@ -41,9 +42,8 @@ public class ControllerServlet extends HttpServlet {
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        logger.debug("session:" + request.getSession().getId() + " doPost()");
         processRequest(request, response);
-        System.out.println("dopost");
-        logger.info("postRequest");
     }
 
     //todo обработать эксепшены
@@ -56,10 +56,12 @@ public class ControllerServlet extends HttpServlet {
         String pagePath = router.getPagePath();
         switch (router.getRouteType()) {
             case FORWARD:
+                logger.debug("session:" + request.getSession().getId() + " FORWARD " + pagePath);
                 RequestDispatcher dispatcher = request.getRequestDispatcher(pagePath);
                 dispatcher.forward(request, response);
                 break;
             case REDIRECT:
+                logger.debug("session:" + request.getSession().getId() + " REDIRECT " + pagePath);
                 response.sendRedirect(pagePath);
                 break;
         }

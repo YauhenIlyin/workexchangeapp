@@ -53,9 +53,9 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             (SELECT account_status.account_status_id FROM account_status WHERE account_status_description = ?)
             );
             """;
-    private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLogin(?)}";
-    private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLogin(?,?)}";
-    private static final String CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN = "{call saveAndGetActivationCodeByLogin(?)}";
+    private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLoginProcedure(?,?)}";
+    private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLoginProcedure(?,?)}";
+    private static final String CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN = "{call saveAndGetActivationCodeByLoginProcedure(?,?)}";
 
     private static final Logger logger = LogManager.getLogger();
     //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
@@ -115,12 +115,13 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     public boolean isFreeAccountLogin(char[] login) throws DaoException {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
+        System.out.println("login: " + loginSB.toString());
         try {
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
             callableStatement.setString(1, loginSB.toString());
-            callableStatement.registerOutParameter(1, Types.BOOLEAN);
+            callableStatement.registerOutParameter(2, Types.BOOLEAN);
             callableStatement.execute();
-            boolean result = callableStatement.getResultSet().getBoolean(1); //todo 1 или 2
+            boolean result = callableStatement.getBoolean(2);
             super.closeStatement(callableStatement);
             return result;
         } catch (SQLException cause) {
@@ -137,20 +138,17 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         loginSB.append(login);
         StringBuilder passwordSB = new StringBuilder(password.length);
         passwordSB.append(passwordSB);
-        boolean result;
         try {
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN);
             callableStatement.setString(1, loginSB.toString());
             callableStatement.setString(2, passwordSB.toString());
             callableStatement.execute();
-            result = callableStatement.getResultSet().getBoolean(1);
             super.closeStatement(callableStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
             SecurityDataCleaner.cleanStringBuilders(loginSB, passwordSB);
         }
-        return result;
     }
 
     @Override
@@ -215,8 +213,9 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         try {
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN);
             callableStatement.setString(1, loginSB.toString());
+            callableStatement.registerOutParameter(2, Types.VARCHAR);
             callableStatement.execute();
-            activationCode = callableStatement.getResultSet().getString(1);
+            activationCode = callableStatement.getString(2);
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
