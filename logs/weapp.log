@@ -1,1 +1,1 @@
-2022-04-03 17:05:03-651 [11981] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-04 01:27:56-009 [15986] [http-nio-8080-exec-4] WARN  util.email.EmailManager error sending activation email

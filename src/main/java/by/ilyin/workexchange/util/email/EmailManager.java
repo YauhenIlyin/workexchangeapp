@@ -19,6 +19,7 @@ public class EmailManager {
     private static Logger logger = LogManager.getLogger();
 
     public void sendActivationMail(String sendTo, String activationCode) {
+        logger.debug("sendActivationMail() start sending");
         String host = "smtp.gmail.com";
         Properties properties = System.getProperties();
         properties.setProperty("mail.smtp.host", host);

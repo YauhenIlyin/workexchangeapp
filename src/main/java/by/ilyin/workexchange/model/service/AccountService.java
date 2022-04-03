@@ -43,19 +43,14 @@ public class AccountService {
                 EntityTransaction transaction = new EntityTransaction();
                 transaction.initTransaction((AbstractDao) userDao);
                 User user = new User();
-                user.createInnerBuilder()
-                        .setFirstName(paramMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0])
-                        .setLastName(paramMap.get(RequestParameterName.SIGN_UP_LAST_NAME)[0])
-                        .setEmail(paramMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0])
-                        .setMobileNumber(paramMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0])
-                        .setAccountStatus(AccountStatus.WAITING_ACTIVATION)
-                        .setRegistrationDate(DateTimeManager.getInstance().getCurrentLocalDateTime());
+                user.createInnerBuilder().setFirstName(paramMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0]).setLastName(paramMap.get(RequestParameterName.SIGN_UP_LAST_NAME)[0]).setEmail(paramMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0]).setMobileNumber(paramMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0]).setAccountStatus(AccountStatus.WAITING_ACTIVATION).setRegistrationDate(DateTimeManager.getInstance().getCurrentLocalDateTime());
                 char[] login = securityParamMap.get(RequestParameterName.SIGN_UP_LOGIN);
                 char[] password = securityParamMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST);
                 userDao.addUserAccountWithoutPassword(user, login);
                 userDao.addUserAccountPasswordByLogin(login, password);
                 String activationCode = userDao.getActivationCodeByUserLogin(login);
                 sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_ACTIVATION_CODE, activationCode);
+                sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_E_MAIL,user.getEmail());
                 sendActivationMail(sessionRequestContent);
                 transaction.commit();
                 transaction.endTransaction();
@@ -125,16 +120,16 @@ public class AccountService {
     }
 
     public SessionRequestContent sendActivationMail(SessionRequestContent sessionRequestContent) {
+        logger.debug("SendActivateMail() start");
         HashMap attributesMap = sessionRequestContent.getRequestAttributes();
-        if (attributesMap.containsKey(RequestParameterName.SIGN_UP_E_MAIL) &&
-                attributesMap.containsKey(RequestParameterName.SIGN_UP_ACTIVATION_CODE) &&
-                attributesMap.get(RequestParameterName.SIGN_UP_E_MAIL) != null &&
-                attributesMap.get(RequestParameterName.SIGN_UP_ACTIVATION_CODE) != null) {
+        if (attributesMap.containsKey(RequestParameterName.SIGN_UP_E_MAIL) && attributesMap.containsKey(RequestParameterName.SIGN_UP_ACTIVATION_CODE) && attributesMap.get(RequestParameterName.SIGN_UP_E_MAIL) != null && attributesMap.get(RequestParameterName.SIGN_UP_ACTIVATION_CODE) != null) {
+            logger.debug("Attributes contain email address and activation code");
             String email = (String) sessionRequestContent.getRequestAttributes().get(RequestParameterName.SIGN_UP_E_MAIL);
             String activationCode = (String) sessionRequestContent.getRequestAttributes().get(RequestParameterName.SIGN_UP_ACTIVATION_CODE);
             EmailManager emailManager = new EmailManager();
             emailManager.sendActivationMail(email, activationCode);
         } else {
+            logger.debug("Attributes not contain email address and activation code");
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         return sessionRequestContent;

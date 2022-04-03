@@ -50,7 +50,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             VALUES (
             ?,?,?,?,?,?,?,
             (SELECT user_role.id FROM user_role WHERE user_role.role_description = ?),
-            (SELECT account_status.account_status_id FROM account_status WHERE account_status_description = ?)
+            (SELECT account_status.id FROM account_status WHERE account_status_description = ?)
             );
             """;
     private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLoginProcedure(?,?)}";
@@ -115,7 +115,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     public boolean isFreeAccountLogin(char[] login) throws DaoException {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
-        System.out.println("login: " + loginSB.toString());
+        System.out.println("login: " + loginSB.toString()); //todo
         try {
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
             callableStatement.setString(1, loginSB.toString());
@@ -133,7 +133,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
 
     //todo почему бы не хранить в StringBuilder  вместо чар
     @Override
-    public boolean addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
+    public void addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         StringBuilder passwordSB = new StringBuilder(password.length);
@@ -152,8 +152,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     @Override
-    public boolean addUserAccountPasswordById(long id, char[] password) throws DaoException {
-        return false;
+    public void addUserAccountPasswordById(long id, char[] password) throws DaoException {
     }
 
     public boolean addUserAccountWithoutPassword(User user, char[] login) throws DaoException {
@@ -184,7 +183,9 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
                     user.setAccountStatus(BASE_USER_ACCOUNT_STATUS_DESCRIPTION);
                 }
                 preparedStatement.setString(9, user.getAccountStatus());
-                preparedStatement.executeQuery();
+                logger.debug("all user parameters set in PreparedStatement");
+                preparedStatement.executeUpdate();
+                logger.debug("successful executeQuery(). User account without password added to database");
                 super.closeStatement(preparedStatement);
                 return true;
             } catch (SQLException cause) {

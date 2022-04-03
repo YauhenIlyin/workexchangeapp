@@ -14,9 +14,9 @@ public interface UserDao extends BaseDao<Long, User> {
 
     public boolean addUserAccountWithoutPassword(User user, char[] login) throws DaoException;
 
-    public boolean addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException;
+    public void addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException;
 
-    public boolean addUserAccountPasswordById(long id, char[] password) throws DaoException;
+    public void addUserAccountPasswordById(long id, char[] password) throws DaoException;
 
     public String getActivationCodeByUserLogin(char[] login) throws DaoException;
 
