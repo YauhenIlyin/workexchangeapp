@@ -1,1 +1,9 @@
-2022-04-04 01:27:56-009 [15986] [http-nio-8080-exec-4] WARN  util.email.EmailManager error sending activation email
+2022-04-04 14:00:12-856 [46254] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-04 23:09:25-108 [155427] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-04 23:09:25-131 [155450] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-04 23:12:22-724 [19060] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-04 23:12:22-747 [19083] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-04 23:40:05-437 [22869] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-04 23:40:05-505 [22937] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-04 23:44:33-239 [12708] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-04 23:44:33-256 [12725] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.

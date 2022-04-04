@@ -12,16 +12,16 @@ public interface UserDao extends BaseDao<Long, User> {
 
     public boolean isFreeAccountLogin(char[] login) throws DaoException;
 
-    public boolean addUserAccountWithoutPassword(User user, char[] login) throws DaoException;
+    public boolean addAccountWithoutPassword(User user, char[] login) throws DaoException;
 
-    public void addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException;
+    public void updateAccountPasswordByLogin(char[] login, char[] password) throws DaoException;
 
-    public void addUserAccountPasswordById(long id, char[] password) throws DaoException;
+    public void updateAccountPasswordById(long id, char[] password) throws DaoException;
 
     public String getActivationCodeByUserLogin(char[] login) throws DaoException;
 
-    public boolean activateAccount(User user) throws DaoException;
-
     public boolean activateAccountById(Long id) throws DaoException;
+
+    public boolean findAccountIdByActivationCode() throws DaoException;
 
 }

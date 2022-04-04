@@ -14,7 +14,7 @@ import java.util.Properties;
 public class EmailManager {
 
     private static final String SEND_FROM = "ilyin.testemail@gmail.com";
-    private static final String SERVER_ADDRESS = "http://localhost:8080/workexchangeapp_war_exploded/";
+    private static final String SERVER_ADDRESS = "http://localhost:8080/workexchangeapp_war_exploded/controllerservlet/";
 
     private static Logger logger = LogManager.getLogger();
 
@@ -26,14 +26,16 @@ public class EmailManager {
         properties.setProperty("mail.smtp.port", "465"); //587 tls //465
         properties.setProperty("mail.smtp.auth", "true");
         properties.setProperty("mail.smtp.ssl.enable", "true");
-        Authenticator auth = new EmailAuthenticator("ilyin.testemail", "1991testpass1");
+        //activationCode = "!@#$%&*()_+?TmX3$esms+@jS%jJkF(1koX0Lb@VnilPH!uHLxprY*hti3Ak)*U+RGS&umip)V(xsFMEXqsZ+CEfsnu6eS35ib!R6j5GLwk4AiU3+Z9cxVz3Z(jzJH9@%^ZtBqkmNt";
+
+        Authenticator auth = new EmailAuthenticator("ilyin.testemail", "mucwuudbmrbqvopu");
         Session session = Session.getDefaultInstance(properties, auth);
         MimeMessage mimeMessage = new MimeMessage(session);
         try {
             mimeMessage.setFrom(SEND_FROM);
             mimeMessage.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(sendTo));
             mimeMessage.setSubject("it set subject test string");
-            mimeMessage.setText(SERVER_ADDRESS + "?command=activation&activationCode=" + activationCode);
+            mimeMessage.setText(SERVER_ADDRESS + "?command=sign_up_activation&activation_code=" + activationCode);
             Transport.send(mimeMessage);
             logger.debug("activation email sent");
         } catch (MessagingException e) {

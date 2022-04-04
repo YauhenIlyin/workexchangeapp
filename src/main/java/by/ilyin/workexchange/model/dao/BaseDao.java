@@ -4,7 +4,6 @@ import by.ilyin.workexchange.model.entity.BaseEntity;
 import by.ilyin.workexchange.exception.DaoException;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +16,7 @@ public interface BaseDao<K, T extends BaseEntity> { //todo проверить м
 
     void closeConnection(Connection connection) throws DaoException;
 
-    List<Optional<T>> findAll() throws DaoException;
+    List<Optional<T>> findAllEntities() throws DaoException;
 
     Optional<T> findEntityById(K id) throws DaoException;
 
@@ -26,6 +25,4 @@ public interface BaseDao<K, T extends BaseEntity> { //todo проверить м
     boolean deleteEntityById(K id) throws DaoException;
 
     T updateEntity(T t) throws DaoException;
-
-    T updateEntityById(K id) throws DaoException;
 }

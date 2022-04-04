@@ -54,14 +54,16 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             );
             """;
     private static final String CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN = "{call isFreeAccountLoginProcedure(?,?)}";
-    private static final String CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN = "{call addCreatedAccountPassByUserLoginProcedure(?,?)}";
+    private static final String CS_SQL_EXPRESSION_UPDATE_ACCOUNT_PASS_BY_USER_LOGIN = "{call updateAccountPassByUserLoginProcedure(?,?)}";
     private static final String CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN = "{call saveAndGetActivationCodeByLoginProcedure(?,?)}";
+    private static final String CS_SQL_EXPRESSION_GET_USER_ID_BY_ACTIVATION_CODE = "{call getUserIdByActivationCodeProcedure(?,?)}";
+    private static final String CS_SQL_EXPRESSION_ACTIVATE_ACCOUNT_BY_ID = "{call activateAccountByID(?)}";
 
     private static final Logger logger = LogManager.getLogger();
     //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
 
     @Override
-    public List<Optional<User>> findAll() throws DaoException { //todo optional ?
+    public List<Optional<User>> findAllEntities() throws DaoException { //todo optional ?
         ArrayList<Optional<User>> userList;
         try {
             PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
@@ -133,13 +135,14 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
 
     //todo почему бы не хранить в StringBuilder  вместо чар
     @Override
-    public void addUserAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
+    public void updateAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         StringBuilder passwordSB = new StringBuilder(password.length);
         passwordSB.append(passwordSB);
         try {
-            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_ADD_CREATED_ACCOUNT_PASS_BY_USER_LOGIN);
+            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_UPDATE_ACCOUNT_PASS_BY_USER_LOGIN);
+
             callableStatement.setString(1, loginSB.toString());
             callableStatement.setString(2, passwordSB.toString());
             callableStatement.execute();
@@ -152,10 +155,10 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     @Override
-    public void addUserAccountPasswordById(long id, char[] password) throws DaoException {
+    public void updateAccountPasswordById(long id, char[] password) throws DaoException {
     }
 
-    public boolean addUserAccountWithoutPassword(User user, char[] login) throws DaoException {
+    public boolean addAccountWithoutPassword(User user, char[] login) throws DaoException {
         if (user != null && login != null && login.length > 0 && isFreeAccountLogin(login)) {
             StringBuilder loginSB = null;
             try {
@@ -199,12 +202,29 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         }
     }
 
-    public boolean activateAccount(User user) throws DaoException {
-        return false;
+    public boolean activateAccountById(long userId) throws DaoException {
+        try {
+            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_ACTIVATE_ACCOUNT_BY_ID);
+            callableStatement.setLong(1, userId);
+            callableStatement.execute();
+            return true;
+        } catch (SQLException cause) {
+            throw new DaoException(cause);
+        }
     }
 
-    public boolean activateAccountById(Long id) throws DaoException {
-        return false;
+    public Optional<Long> findAccountIdByActivationCode(String activationCode) throws DaoException {
+        try {
+            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_USER_ID_BY_ACTIVATION_CODE);
+            callableStatement.setString(1, activationCode);
+            callableStatement.registerOutParameter(2, Types.BIGINT);
+            callableStatement.execute();
+            Optional<Long> optionalUserId = Optional.ofNullable(callableStatement.getLong(2));
+            return optionalUserId;
+        } catch (SQLException cause) {
+            throw new DaoException(cause);
+        }
+
     }
 
     public String getActivationCodeByUserLogin(char[] login) throws DaoException {
@@ -240,11 +260,6 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         return null;
     }
 
-    @Override
-    public User updateEntityById(Long id) throws DaoException {
-        return null;
-    }
-
     private ArrayList<Optional<User>> buildUserListFromResultSet(ResultSet resultSet) throws SQLException {
         ArrayList<Optional<User>> optionalUserList = new ArrayList<>();
         boolean isWorking = true;
@@ -252,16 +267,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         while (isWorking) {
             if (resultSet.next()) {
                 user = new User();
-                user.createInnerBuilder()
-                        .setId(resultSet.getInt(DatabaseColumnNames.USERS_ID))
-                        .setFirstName(resultSet.getString(DatabaseColumnNames.USERS_FIRST_NAME))
-                        .setLastName(resultSet.getString(DatabaseColumnNames.USERS_LAST_NAME))
-                        .setRegistrationDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_REGISTRATION_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .setLastActivityDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_LAST_ACTIVITY_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .setEmail(resultSet.getString(DatabaseColumnNames.USERS_E_MAIL))
-                        .setMobileNumber(resultSet.getString(DatabaseColumnNames.USERS_MOBILE_NUMBER))
-                        .setRole(resultSet.getString(DatabaseColumnNames.USER_ROLE_ROLE_DESCRIPTION))
-                        .setAccountStatus(resultSet.getString(DatabaseColumnNames.ACCOUNT_STATUS_DESCRIPTION));
+                user.createInnerBuilder().setId(resultSet.getInt(DatabaseColumnNames.USERS_ID)).setFirstName(resultSet.getString(DatabaseColumnNames.USERS_FIRST_NAME)).setLastName(resultSet.getString(DatabaseColumnNames.USERS_LAST_NAME)).setRegistrationDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_REGISTRATION_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).setLastActivityDate(LocalDateTime.parse(resultSet.getString(DatabaseColumnNames.USERS_LAST_ACTIVITY_DATE), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).setEmail(resultSet.getString(DatabaseColumnNames.USERS_E_MAIL)).setMobileNumber(resultSet.getString(DatabaseColumnNames.USERS_MOBILE_NUMBER)).setRole(resultSet.getString(DatabaseColumnNames.USER_ROLE_ROLE_DESCRIPTION)).setAccountStatus(resultSet.getString(DatabaseColumnNames.ACCOUNT_STATUS_DESCRIPTION));
                 optionalUserList.add(Optional.of(user));
             } else {
                 isWorking = false;
