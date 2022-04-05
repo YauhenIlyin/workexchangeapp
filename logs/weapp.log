@@ -7,3 +7,33 @@
 2022-04-04 23:40:05-505 [22937] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
 2022-04-04 23:44:33-239 [12708] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
 2022-04-04 23:44:33-256 [12725] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 01:56:47-609 [39127] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 01:56:47-625 [39143] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:01:31-244 [14193] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:01:31-260 [14209] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:05:58-766 [15524] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:05:58-782 [15540] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:12:55-022 [14535] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:12:55-039 [14552] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:14:48-696 [12152] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:14:48-712 [12168] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:19:06-500 [18439] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:19:06-515 [18454] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:24:52-959 [14042] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:24:52-993 [14076] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:37:31-448 [15804] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:37:31-467 [15823] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:41:21-801 [12010] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:41:21-826 [12035] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:45:01-272 [12336] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:45:01-294 [12358] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:51:53-514 [12274] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:51:53-534 [12294] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 02:55:06-689 [12787] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 02:55:06-706 [12804] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 03:03:24-421 [16802] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 03:03:24-441 [16822] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 03:11:12-306 [18661] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 03:11:12-328 [18683] [http-nio-8080-exec-5] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.
+2022-04-05 03:22:30-522 [18242] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager Database property file connected successfully.
+2022-04-05 03:22:30-552 [18272] [http-nio-8080-exec-4] INFO  model.pool.DatabasePropertyManager DatabasePropertyManager instance successfully created.

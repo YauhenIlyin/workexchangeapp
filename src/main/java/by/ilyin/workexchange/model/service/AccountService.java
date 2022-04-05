@@ -16,8 +16,8 @@ import by.ilyin.workexchange.validator.SignUpDataValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 import java.util.HashMap;
+import java.util.Optional;
 
 public class AccountService {
 
@@ -60,7 +60,7 @@ public class AccountService {
         return sessionRequestContent;
     }
 
-    private SessionRequestContent validateRegistrationData(SessionRequestContent sessionRequestContent) throws DaoException {
+    private SessionRequestContent validateRegistrationData(SessionRequestContent sessionRequestContent) {
         HashMap<String, String[]> parametersMap = sessionRequestContent.getRequestParameters();
         HashMap<String, char[]> securityParametersMap = sessionRequestContent.getSecurityParameters();
         char[] login = securityParametersMap.get(RequestParameterName.SIGN_UP_LOGIN);
@@ -119,15 +119,30 @@ public class AccountService {
         return sessionRequestContent;
     }
 
-    public SessionRequestContent activateAccount(SessionRequestContent sessionRequestContent) {
-        HashMap<String, String[]> parametersMap = sessionRequestContent.getRequestParameters();
-        String activationCode = parametersMap.get(RequestParameterName.SIGN_UP_ACTIVATION_CODE)[0];
-        if(activationCode != null && activationCode.length() > 0) {
-            UserDao userDao = new UserDaoImpl();
-            EntityTransaction transaction = new EntityTransaction();
-            transaction.initTransaction((AbstractDao) userDao);
-            userDao.findAccountIdByActivationCode(sessionRequestContent);
+    //todo добавить везде rollback
+    public SessionRequestContent activateAccount(SessionRequestContent sessionRequestContent) throws DaoException {
+        //todo добавить в валидатор проверку по длине строки кода, чтобы не дергать при атаке бд
+        EntityTransaction transaction = null;
+        try {
+            HashMap<String, String[]> parametersMap = sessionRequestContent.getRequestParameters();
+            String activationCode = parametersMap.get(RequestParameterName.SIGN_UP_ACTIVATION_CODE)[0];
+            if (activationCode != null && activationCode.length() > 0) {
+                UserDao userDao = new UserDaoImpl();
+                transaction = new EntityTransaction();
+                transaction.initTransaction((AbstractDao) userDao);
+                Optional<Long> userId = null;
+                userId = userDao.findAccountIdByActivationCode(activationCode);
+                if (!userId.isEmpty()) {
+                    System.out.println("userId:" + userId.get());//todo
+                    userDao.activateAccountById(userId.get());
+                    transaction.commit(); //todo сделать так везде
+                    System.out.println("123123213213213131232323123232ffffff");//todo
+                }
+            }
+        } finally {
+            transaction.endTransaction(); //todo сделать так везде
         }
+        return sessionRequestContent;
     }
 
     public SessionRequestContent sendActivationMail(SessionRequestContent sessionRequestContent) {

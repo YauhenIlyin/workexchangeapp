@@ -142,7 +142,6 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         passwordSB.append(passwordSB);
         try {
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_UPDATE_ACCOUNT_PASS_BY_USER_LOGIN);
-
             callableStatement.setString(1, loginSB.toString());
             callableStatement.setString(2, passwordSB.toString());
             callableStatement.execute();
@@ -234,9 +233,13 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         try {
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN);
             callableStatement.setString(1, loginSB.toString());
+            System.out.println("111111");
             callableStatement.registerOutParameter(2, Types.VARCHAR);
+            System.out.println("222222");
             callableStatement.execute();
+            System.out.println("33333");
             activationCode = callableStatement.getString(2);
+            System.out.println("44444");
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {

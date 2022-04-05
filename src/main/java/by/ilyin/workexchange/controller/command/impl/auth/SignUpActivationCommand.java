@@ -4,6 +4,8 @@ import by.ilyin.workexchange.controller.command.Command;
 import by.ilyin.workexchange.controller.command.CommandResult;
 import by.ilyin.workexchange.controller.command.Router;
 import by.ilyin.workexchange.controller.command.SessionRequestContent;
+import by.ilyin.workexchange.controller.evidence.PagePath;
+import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.model.service.AccountService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,8 +28,15 @@ public class SignUpActivationCommand implements Command {
     public CommandResult execute(SessionRequestContent sessionRequestContent) {
         logger.debug("start execute()");
         Router router = null;
-        accountService.activateAccount(sessionRequestContent);
-        return null;
+        try {
+            accountService.activateAccount(sessionRequestContent);
+            router = new Router(Router.RouteType.REDIRECT, "../" + PagePath.LOGIN_PAGE); //todo можно ли так делать
+            sessionRequestContent.setInvalidateSession(true);//todo проверку на auth И не выкидывать, если залогинен на другом окне
+        } catch (DaoException e) {
+            e.printStackTrace(); //todo
+        }
+        CommandResult commandResult = new CommandResult(router, sessionRequestContent);
+        return commandResult;
     }
 
     @Override

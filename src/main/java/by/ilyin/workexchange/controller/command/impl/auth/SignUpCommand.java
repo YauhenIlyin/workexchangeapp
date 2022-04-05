@@ -41,7 +41,7 @@ public class SignUpCommand implements Command {
                 router = new Router(Router.RouteType.FORWARD, PagePath.REGISTRATION_PAGE);
             }
         } catch (DaoException e) {
-            e.printStackTrace();//todo command exception
+            e.printStackTrace();//todo обработка в случае неуадочного выполнения
         }
         CommandResult commandResult = new CommandResult(router, sessionRequestContent);
         logger.debug("end execute()");

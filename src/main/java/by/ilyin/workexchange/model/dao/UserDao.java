@@ -18,10 +18,11 @@ public interface UserDao extends BaseDao<Long, User> {
 
     public void updateAccountPasswordById(long id, char[] password) throws DaoException;
 
+    public boolean activateAccountById(long id) throws DaoException;
+
+    public Optional<Long> findAccountIdByActivationCode(String activationCode) throws DaoException;
+
     public String getActivationCodeByUserLogin(char[] login) throws DaoException;
 
-    public boolean activateAccountById(Long id) throws DaoException;
-
-    public boolean findAccountIdByActivationCode() throws DaoException;
 
 }
