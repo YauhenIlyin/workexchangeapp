@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 
-public class AbstractDao {
+public class AbstractDao { //todo нельзя ли сделать package private
 
     private static final Logger logger = LogManager.getLogger();
     protected Connection connection; //todo и тогда делаем прайват
@@ -28,10 +28,14 @@ public class AbstractDao {
     }
 
     public void closeConnection(Connection connection) {
-        try {
-            connection.close();
-        } catch (SQLException cause) {
-            logger.log(Level.ERROR, "Can't close the connection.", cause);
+        if (connection == null) {
+            logger.log(Level.WARN, "Connection closing isn't possible. Statement is null.");
+        } else {
+            try {
+                connection.close();
+            } catch (SQLException cause) {
+                logger.log(Level.ERROR, "Can't close the connection.", cause);
+            }
         }
     }
 

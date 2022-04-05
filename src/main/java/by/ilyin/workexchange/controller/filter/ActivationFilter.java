@@ -10,9 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
-@WebFilter(urlPatterns = {"/*"})
+@WebFilter(urlPatterns = {"/controller/"})
 public class ActivationFilter implements Filter {
-
 
     private final String COMMAND_PARAMETER_KEYWORD_NAME = "command";
     private final String COMMAND_ACTIVATION_NAME = CommandType.SIGN_UP_ACTIVATION.name();

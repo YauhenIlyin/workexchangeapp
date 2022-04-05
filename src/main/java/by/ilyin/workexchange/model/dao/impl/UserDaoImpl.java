@@ -63,15 +63,18 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
 
     @Override
-    public List<Optional<User>> findAllEntities() throws DaoException { //todo optional ?
+    public List<Optional<User>> findAllEntities() throws DaoException {
         ArrayList<Optional<User>> userList;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet;
         try {
-            PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_ALL_USERS);
+            resultSet = preparedStatement.executeQuery();
             userList = buildUserListFromResultSet(resultSet);
-            super.closeStatement(preparedStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause); //todo нужно ли дополнительное сообщение
+        } finally {
+            super.closeStatement(preparedStatement);
         }
         return userList;
     }
@@ -79,56 +82,63 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     @Override
     public Optional<User> findEntityById(Long id) throws DaoException { //todo optional
         Optional<User> optionalUser;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet;
         try {
-            ResultSet resultSet;
-            PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
+            preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
             resultSet = preparedStatement.getResultSet();
             optionalUser = buildUserListFromResultSet(resultSet).get(0);
-            super.closeStatement(preparedStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause);
+        } finally {
+            super.closeStatement(preparedStatement);
         }
         return optionalUser;
     }
 
     @Override
     public Optional<User> findEntityByLogin(char[] login) throws DaoException {
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet;
         Optional<User> optionalUser;
-        StringBuilder sb = new StringBuilder(login.length);
-        sb.append(login);
+        StringBuilder loginSB = new StringBuilder(login.length);
+        loginSB.append(login);
         try {
-            ResultSet resultSet;
-            PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
-            preparedStatement.setString(1, sb.toString());
+            preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_FIND_USER_BY_ID);
+            preparedStatement.setString(1, loginSB.toString());
             preparedStatement.executeQuery();
             resultSet = preparedStatement.getResultSet();
             optionalUser = buildUserListFromResultSet(resultSet).get(0);
-            super.closeStatement(preparedStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause);
+        } finally {
+            super.closeStatement(preparedStatement);
+            SecurityDataCleaner.cleanStringBuilders(loginSB);
         }
-        SecurityDataCleaner.cleanStringBuilders(sb);
         return optionalUser;
     }
 
     //todo почистить код
     public boolean isFreeAccountLogin(char[] login) throws DaoException {
+        CallableStatement callableStatement = null;
+        boolean isFree;
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         System.out.println("login: " + loginSB.toString()); //todo
         try {
-            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
+            callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_IS_FREE_ACCOUNT_LOGIN);
             callableStatement.setString(1, loginSB.toString());
             callableStatement.registerOutParameter(2, Types.BOOLEAN);
             callableStatement.execute();
-            boolean result = callableStatement.getBoolean(2);
-            super.closeStatement(callableStatement);
-            return result;
+            isFree = callableStatement.getBoolean(2);
+            System.out.println(isFree);
+            return isFree;
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
+            super.closeStatement(callableStatement);
             SecurityDataCleaner.cleanStringBuilders(loginSB);
         }
     }
@@ -136,19 +146,20 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     //todo почему бы не хранить в StringBuilder  вместо чар
     @Override
     public void updateAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
+        CallableStatement callableStatement = null;
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         StringBuilder passwordSB = new StringBuilder(password.length);
         passwordSB.append(passwordSB);
         try {
-            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_UPDATE_ACCOUNT_PASS_BY_USER_LOGIN);
+            callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_UPDATE_ACCOUNT_PASS_BY_USER_LOGIN);
             callableStatement.setString(1, loginSB.toString());
             callableStatement.setString(2, passwordSB.toString());
             callableStatement.execute();
-            super.closeStatement(callableStatement);
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
+            super.closeStatement(callableStatement);
             SecurityDataCleaner.cleanStringBuilders(loginSB, passwordSB);
         }
     }
@@ -158,11 +169,13 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     public boolean addAccountWithoutPassword(User user, char[] login) throws DaoException {
-        if (user != null && login != null && login.length > 0 && isFreeAccountLogin(login)) {
-            StringBuilder loginSB = null;
+        boolean result;
+        if (user != null && login != null && login.length > 0) {
+            PreparedStatement preparedStatement = null;
+            StringBuilder loginSB;
+            loginSB = new StringBuilder(login.length);
             try {
-                loginSB = new StringBuilder(login.length);
-                PreparedStatement preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_ADD_USER_ACCOUNT);
+                preparedStatement = super.connection.prepareStatement(PS_SQL_EXPRESSION_ADD_USER_ACCOUNT);
                 preparedStatement.setString(1, user.getFirstName());
                 preparedStatement.setString(2, user.getLastName());
                 if (user.getRegistrationDateTime() == null) {
@@ -188,35 +201,40 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
                 logger.debug("all user parameters set in PreparedStatement");
                 preparedStatement.executeUpdate();
                 logger.debug("successful executeQuery(). User account without password added to database");
-                super.closeStatement(preparedStatement);
-                return true;
+                result = true;
             } catch (SQLException cause) {
                 throw new DaoException(cause);
             } finally {
+                super.closeStatement(preparedStatement); //todo в finally
                 SecurityDataCleaner.cleanStringBuilders(loginSB);
             }
         } else {
             logger.log(Level.WARN, "Login, user is empty or such login is occupied.");
-            return false;
+            result = false;
         }
+        return result;
     }
 
     public boolean activateAccountById(long userId) throws DaoException {
+        CallableStatement callableStatement = null;
         try {
-            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_ACTIVATE_ACCOUNT_BY_ID);
+            callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_ACTIVATE_ACCOUNT_BY_ID);
             callableStatement.setLong(1, userId);
-            callableStatement.execute();
-            return true;
+            return callableStatement.execute();
         } catch (SQLException cause) {
             throw new DaoException(cause);
+        } finally {
+            super.closeStatement(callableStatement);
         }
     }
 
     public Optional<Long> findAccountIdByActivationCode(String activationCode) throws DaoException {
         try {
+            System.out.println("length: " + activationCode.length() + " activationCode: " + activationCode);
             CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_USER_ID_BY_ACTIVATION_CODE);
             callableStatement.setString(1, activationCode);
             callableStatement.registerOutParameter(2, Types.BIGINT);
+            System.out.println("helloooooo");
             callableStatement.execute();
             Optional<Long> optionalUserId = Optional.ofNullable(callableStatement.getLong(2));
             return optionalUserId;

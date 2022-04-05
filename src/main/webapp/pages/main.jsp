@@ -11,6 +11,7 @@
     <title>Title</title>
 </head>
 <body>
+<p> main page</p>
 <%System.out.println("work jsp main");%> <!--/delete test-->
 </body>
 </html>

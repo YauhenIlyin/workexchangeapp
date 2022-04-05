@@ -9,12 +9,16 @@ import jakarta.mail.internet.MimeMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class EmailManager {
 
     private static final String SEND_FROM = "ilyin.testemail@gmail.com";
-    private static final String SERVER_ADDRESS = "http://localhost:8080/workexchangeapp_war_exploded/controllerservlet/";
+    private static final String SERVER_ADDRESS = "http://localhost:8080/workexchangeapp_war_exploded/controller/";
 
     private static Logger logger = LogManager.getLogger();
 
@@ -35,6 +39,10 @@ public class EmailManager {
             mimeMessage.setFrom(SEND_FROM);
             mimeMessage.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(sendTo));
             mimeMessage.setSubject("it set subject test string");
+            //String urlString = activationCode;
+            //byte[] bytes = urlString.getBytes(StandardCharsets.UTF_8);
+            //String utf8EncodedString = new String(bytes, StandardCharsets.UTF_8);
+            //String encodedStr = URLEncoder.encode(urlString, Charset.forName("utf-8"));
             mimeMessage.setText(SERVER_ADDRESS + "?command=sign_up_activation&activation_code=" + activationCode);
             Transport.send(mimeMessage);
             logger.debug("activation email sent");

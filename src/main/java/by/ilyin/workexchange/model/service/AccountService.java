@@ -30,30 +30,49 @@ public class AccountService {
     email - правильный email
      */
     public SessionRequestContent registerNewAccount(SessionRequestContent sessionRequestContent) throws DaoException {
+        EntityTransaction transaction = null;
+        UserDao userDao;
+        User user;
+        HashMap<String, String[]> paramMap;
+        HashMap<String, char[]> securityParamMap;
         logger.debug("start registerNewAccount()");
-        boolean isValidData = validateRegistrationData(sessionRequestContent).isCurrentResultSuccessful();
+        validateRegistrationData(sessionRequestContent);
+        boolean isValidData = sessionRequestContent.isCurrentResultSuccessful();
         logger.debug("registerNewAccount() isValidData: " + isValidData);
         if (isValidData) {
-            boolean isFreeLogin = isFreeAccountLogin(sessionRequestContent).isCurrentResultSuccessful();
+            isFreeAccountLogin(sessionRequestContent);
+            boolean isFreeLogin = sessionRequestContent.isCurrentResultSuccessful();
             logger.debug("is free login: " + isFreeLogin);
             if (isFreeLogin) {
-                HashMap<String, String[]> paramMap = sessionRequestContent.getRequestParameters();
-                HashMap<String, char[]> securityParamMap = sessionRequestContent.getSecurityParameters();
-                UserDao userDao = new UserDaoImpl();
-                EntityTransaction transaction = new EntityTransaction();
-                transaction.initTransaction((AbstractDao) userDao);
-                User user = new User();
-                user.createInnerBuilder().setFirstName(paramMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0]).setLastName(paramMap.get(RequestParameterName.SIGN_UP_LAST_NAME)[0]).setEmail(paramMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0]).setMobileNumber(paramMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0]).setAccountStatus(AccountStatus.WAITING_ACTIVATION).setRegistrationDate(DateTimeManager.getInstance().getCurrentLocalDateTime());
-                char[] login = securityParamMap.get(RequestParameterName.SIGN_UP_LOGIN);
-                char[] password = securityParamMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST);
-                userDao.addAccountWithoutPassword(user, login);
-                userDao.updateAccountPasswordByLogin(login, password);
-                String activationCode = userDao.getActivationCodeByUserLogin(login);
-                sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_ACTIVATION_CODE, activationCode);
-                sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_E_MAIL, user.getEmail());
-                sendActivationMail(sessionRequestContent);
-                transaction.commit();
-                transaction.endTransaction();
+                paramMap = sessionRequestContent.getRequestParameters();
+                securityParamMap = sessionRequestContent.getSecurityParameters();
+                try {
+                    userDao = new UserDaoImpl();
+                    transaction = new EntityTransaction();
+                    transaction.initTransaction((AbstractDao) userDao);
+                    user = new User();
+                    user.createInnerBuilder()
+                            .setFirstName(paramMap.get(RequestParameterName.SIGN_UP_FIRST_NAME)[0])
+                            .setLastName(paramMap.get(RequestParameterName.SIGN_UP_LAST_NAME)[0])
+                            .setEmail(paramMap.get(RequestParameterName.SIGN_UP_E_MAIL)[0])
+                            .setMobileNumber(paramMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0])
+                            .setAccountStatus(AccountStatus.WAITING_ACTIVATION)
+                            .setRegistrationDate(DateTimeManager.getInstance().getCurrentLocalDateTime());
+                    char[] login = securityParamMap.get(RequestParameterName.SIGN_UP_LOGIN);
+                    char[] password = securityParamMap.get(RequestParameterName.SIGN_UP_PASSWORD_FIRST);
+                    userDao.addAccountWithoutPassword(user, login);
+                    userDao.updateAccountPasswordByLogin(login, password);
+                    String activationCode = userDao.getActivationCodeByUserLogin(login);
+                    sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_ACTIVATION_CODE, activationCode);
+                    sessionRequestContent.getRequestAttributes().put(RequestParameterName.SIGN_UP_E_MAIL, user.getEmail());
+                    sendActivationMail(sessionRequestContent);
+                    transaction.commit();
+                } catch (DaoException cause) {
+                    transaction.rollback();
+                    sessionRequestContent.setCurrentResultSuccessful(false);
+                } finally {
+                    transaction.endTransaction();
+                }
             }
         }
         logger.debug("registerNewAccount() result: " + sessionRequestContent.isCurrentResultSuccessful());
@@ -99,49 +118,58 @@ public class AccountService {
         return sessionRequestContent;
     }
 
-    public SessionRequestContent isFreeAccountLogin(SessionRequestContent sessionRequestContent) throws DaoException {
+    public SessionRequestContent isFreeAccountLogin(SessionRequestContent sessionRequestContent) {
         char[] login = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_UP_LOGIN);
-        if (login != null && login.length > 0) {
-            UserDao userDao = new UserDaoImpl();
-            EntityTransaction transaction = new EntityTransaction();
-            transaction.initTransaction((AbstractDao) userDao);
-            boolean isFreeAccountLogin = userDao.isFreeAccountLogin(login);
-            transaction.commit();
-            transaction.endTransaction();
-            if (!isFreeAccountLogin) {
-                sessionRequestContent.setCurrentResultSuccessful(false);
+        boolean isFreeLogin = false;
+        if (!SignUpDataValidator.getInstance().validateLogin(login)) {
+            sessionRequestContent.getRequestAttributes().put(InfoMessagesKeyWords.REGISTRATION_ERROR_LOGIN_FORMAT, null);
+        } else {
+            EntityTransaction transaction = null;
+            UserDao userDao;
+            try {
+                userDao = new UserDaoImpl();
+                transaction = new EntityTransaction();
+                transaction.initTransaction((AbstractDao) userDao);
+                isFreeLogin = userDao.isFreeAccountLogin(login);
+                transaction.commit();
+            } catch (DaoException cause) {
+                logger.error("Exception was generated when trying to check isFree login." + cause);
+            } finally {
+                transaction.endTransaction();
+            }
+            if (!isFreeLogin) {
                 sessionRequestContent.getRequestAttributes().put(InfoMessagesKeyWords.REGISTRATION_INFO_LOGIN_BUSY, null);
             }
-        } else {
-            sessionRequestContent.setCurrentResultSuccessful(false);
-            sessionRequestContent.getRequestAttributes().put(InfoMessagesKeyWords.REGISTRATION_ERROR_LOGIN_FORMAT, null);
         }
+        sessionRequestContent.setCurrentResultSuccessful(isFreeLogin);
         return sessionRequestContent;
     }
 
-    //todo добавить везде rollback
-    public SessionRequestContent activateAccount(SessionRequestContent sessionRequestContent) throws DaoException {
-        //todo добавить в валидатор проверку по длине строки кода, чтобы не дергать при атаке бд
-        EntityTransaction transaction = null;
-        try {
-            HashMap<String, String[]> parametersMap = sessionRequestContent.getRequestParameters();
-            String activationCode = parametersMap.get(RequestParameterName.SIGN_UP_ACTIVATION_CODE)[0];
-            if (activationCode != null && activationCode.length() > 0) {
-                UserDao userDao = new UserDaoImpl();
-                transaction = new EntityTransaction();
+    public SessionRequestContent activateAccount(SessionRequestContent sessionRequestContent) {
+        HashMap<String, String[]> parametersMap = sessionRequestContent.getRequestParameters();
+        String activationCode = parametersMap.get(RequestParameterName.SIGN_UP_ACTIVATION_CODE)[0];
+        System.out.println("activationCode " + activationCode);
+        boolean result = false;
+        if (SignUpDataValidator.getInstance().validateActivationCodeLength(activationCode)) {
+            EntityTransaction transaction = new EntityTransaction();
+            UserDao userDao = new UserDaoImpl();
+            Optional<Long> optionalUserId;
+            try {
                 transaction.initTransaction((AbstractDao) userDao);
-                Optional<Long> userId = null;
-                userId = userDao.findAccountIdByActivationCode(activationCode);
-                if (!userId.isEmpty()) {
-                    System.out.println("userId:" + userId.get());//todo
-                    userDao.activateAccountById(userId.get());
-                    transaction.commit(); //todo сделать так везде
-                    System.out.println("123123213213213131232323123232ffffff");//todo
+                optionalUserId = userDao.findAccountIdByActivationCode(activationCode);
+                if (!optionalUserId.isEmpty()) {
+                    userDao.activateAccountById(optionalUserId.get());
+                    transaction.commit();
+                    result = true;
                 }
+            } catch (DaoException cause) {
+                transaction.rollback();
+                logger.error("Exception was generated when trying to activate." + cause);
+            } finally {
+                transaction.endTransaction();
             }
-        } finally {
-            transaction.endTransaction(); //todo сделать так везде
         }
+        sessionRequestContent.setCurrentResultSuccessful(result);
         return sessionRequestContent;
     }
 

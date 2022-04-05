@@ -38,6 +38,8 @@ public class SignUpDataValidator {
     private final int MIN_FIRST_LAST_NAME_LENGTH = 1;
     private final int MAX_FIRST_LAST_NAME_LENGTH = 14;
 
+    private final int ACTIVATION_CODE_LENGTH = 128;
+
     //todo правила регистрации:
     /*
     login -  !@#$%^&'()*  1234567890 A-Z _ a-z (от 6 до 16) Буквы в разном регистре
@@ -63,7 +65,7 @@ public class SignUpDataValidator {
     }
 
     public boolean validateLogin(char[] login) {
-        if (!charArrValueLengthValidator(login, MIN_LOGIN_LENGTH, MAX_LOGIN_LENGTH)) {
+        if (login == null && !charArrValueLengthValidator(login, MIN_LOGIN_LENGTH, MAX_LOGIN_LENGTH)) {
             return false;
         }
         int lowerCaseLetterCount = 0;
@@ -198,6 +200,12 @@ public class SignUpDataValidator {
         int lastNameReallyLength = lastName.trim().length();
         boolean isValid = !(firstNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH || lastNameReallyLength < MIN_FIRST_LAST_NAME_LENGTH);
         logger.debug("validateFirstLastName(): " + isValid);
+        return isValid;
+    }
+
+    public boolean validateActivationCodeLength(String activationCode) {
+        boolean isValid = activationCode != null && activationCode.length() == ACTIVATION_CODE_LENGTH;
+        logger.debug("Activation code length is valid :" + isValid);
         return isValid;
     }
 

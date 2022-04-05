@@ -28,13 +28,10 @@ public class SignUpActivationCommand implements Command {
     public CommandResult execute(SessionRequestContent sessionRequestContent) {
         logger.debug("start execute()");
         Router router = null;
-        try {
-            accountService.activateAccount(sessionRequestContent);
-            router = new Router(Router.RouteType.REDIRECT, "../" + PagePath.LOGIN_PAGE); //todo можно ли так делать
-            sessionRequestContent.setInvalidateSession(true);//todo проверку на auth И не выкидывать, если залогинен на другом окне
-        } catch (DaoException e) {
-            e.printStackTrace(); //todo
-        }
+        accountService.activateAccount(sessionRequestContent);
+        router = new Router(Router.RouteType.REDIRECT, "../" + PagePath.LOGIN_PAGE); //todo можно ли так делать
+        sessionRequestContent.setInvalidateSession(true);//todo проверку на auth И не выкидывать, если залогинен на другом окне
+
         CommandResult commandResult = new CommandResult(router, sessionRequestContent);
         return commandResult;
     }
