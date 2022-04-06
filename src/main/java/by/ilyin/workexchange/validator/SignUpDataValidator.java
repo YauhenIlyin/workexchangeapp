@@ -101,7 +101,7 @@ public class SignUpDataValidator {
     }
 
     public boolean validatePassword(char[] password) {
-        if (!charArrValueLengthValidator(password, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH)) {
+        if (password == null || !charArrValueLengthValidator(password, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH)) {
             return false;
         }
         int lowerCaseLetterCount = 0;

@@ -11,7 +11,7 @@
     <title>Registration</title>
 </head>
 <body>
-<%-- ${pageContext.request.getContextPath} --%>
+
 <%System.out.println("work jsp registration");%> <!--/delete test-->
 <form name="registrationForm" method="POST" action="${pageContext.request.contextPath}/controller">
     <input type="hidden" name="command" value="sign_up"/>

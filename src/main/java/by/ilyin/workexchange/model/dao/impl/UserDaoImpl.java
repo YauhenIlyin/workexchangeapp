@@ -267,6 +267,15 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     @Override
+    public boolean checkAuthAccountLoginPass(char[] login, char[] password, long userId) {
+        StringBuilder loginSB = new StringBuilder(login.length);
+        loginSB.append(login);
+        StringBuilder passSB = new StringBuilder(password.length);
+        passSB.append(password);
+
+    }
+
+    @Override
     public boolean deleteEntity(User user) throws DaoException {
         return false;
     }

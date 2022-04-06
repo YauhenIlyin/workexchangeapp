@@ -14,15 +14,15 @@
 <body>
 <%System.out.println("work jsp login");%> <!--/delete test-->
 <form name="loginForm" method="POST" action="${pageContext.request.contextPath}/controller">
-    <input type="hidden" name="command" value="login"/>
+    <input type="hidden" name="command" value="sign_in"/>
     <br/>
     <p>login
     <p/><input type="text" name="login" value=""/>
     <br/>
     <p>password
-    <p/><input type="text" name="password" value=""/>
+    <p/><input type="password" name="password" value=""/>
     <br/>
-    <input type="submit" name="Log In"/>
+    <input type="submit" name="Log In" value="Sign in"/>
 </form>
 <br/>
 <br/>

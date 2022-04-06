@@ -189,4 +189,31 @@ public class AccountService {
         return sessionRequestContent;
     }
 
+    public SessionRequestContent signIn(SessionRequestContent sessionRequestContent) {
+        char[] login = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_UP_LOGIN);
+        char[] password = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_IN_PASSWORD);
+        SignUpDataValidator validator = SignUpDataValidator.getInstance();
+        if (validator.validateLogin(login) && validator.validatePassword(password)) {
+            EntityTransaction transaction;
+            UserDao userDao;
+            Optional<User> optionalUser;
+            try {
+                userDao = new UserDaoImpl();
+                transaction.initTransaction(userDao);
+                optionalUser = userDao.findEntityByLogin(login);
+                if(optionalUser.isPresent()){
+                    User user = optionalUser.get();
+                    long userId = user.getId();
+
+                }
+            } catch (DaoException e) {
+                e.printStackTrace();
+            } finally {
+
+            }
+        }
+
+
+    }
+
 }
