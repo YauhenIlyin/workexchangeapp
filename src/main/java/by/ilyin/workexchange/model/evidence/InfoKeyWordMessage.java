@@ -1,6 +1,6 @@
 package by.ilyin.workexchange.model.evidence;
 
-public class InfoMessagesKeyWords {
+public class InfoKeyWordMessage {
 
     public static final String REGISTRATION_ERROR_LOGIN_FORMAT = "registration.error.login_format";
     public static final String REGISTRATION_ERROR_PASSWORD_FORMAT = "registration.error.password_format";
@@ -10,5 +10,6 @@ public class InfoMessagesKeyWords {
     public static final String REGISTRATION_ERROR_MOBILE_FORMAT = "registration.error.mobile_format";
 
     public static final String REGISTRATION_INFO_LOGIN_BUSY = "registration.info.login_busy";
+
 
 }

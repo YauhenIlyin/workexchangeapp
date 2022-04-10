@@ -7,7 +7,6 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @WebFilter(urlPatterns = {"/controller/"})
 public class ActivationFilter implements Filter {
@@ -16,13 +15,13 @@ public class ActivationFilter implements Filter {
     private final String COMMAND_SIGN_UP_ACTIVATION_NAME = CommandType.SIGN_UP_ACTIVATION.name().toLowerCase();
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        Optional<String> optionalCommandName = Optional.ofNullable(request.getParameter(COMMAND_PARAMETER_KEYWORD_NAME));
-        if (!optionalCommandName.isEmpty() && optionalCommandName.get().equals(COMMAND_SIGN_UP_ACTIVATION_NAME)) {
+        String commandName = request.getParameter(COMMAND_PARAMETER_KEYWORD_NAME);
+        if (commandName != null && commandName.equals(COMMAND_SIGN_UP_ACTIVATION_NAME)) {
             HttpServletRequest servletRequest = (HttpServletRequest) request;
             //todo права доступа может быть
             ServletContext servletContext = servletRequest.getServletContext();

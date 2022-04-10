@@ -2,6 +2,7 @@ package by.ilyin.workexchange.model.service;
 
 import by.ilyin.workexchange.controller.command.SessionRequestContent;
 import by.ilyin.workexchange.controller.evidence.RequestParameterName;
+import by.ilyin.workexchange.controller.evidence.SessionAttributeName;
 import by.ilyin.workexchange.exception.DaoException;
 import by.ilyin.workexchange.model.dao.AbstractDao;
 import by.ilyin.workexchange.model.dao.EntityTransaction;
@@ -9,7 +10,7 @@ import by.ilyin.workexchange.model.dao.UserDao;
 import by.ilyin.workexchange.model.dao.impl.UserDaoImpl;
 import by.ilyin.workexchange.model.entity.User;
 import by.ilyin.workexchange.model.evidence.AccountStatus;
-import by.ilyin.workexchange.model.evidence.InfoMessagesKeyWords;
+import by.ilyin.workexchange.model.evidence.InfoKeyWordMessage;
 import by.ilyin.workexchange.util.DateTimeManager;
 import by.ilyin.workexchange.util.email.EmailManager;
 import by.ilyin.workexchange.validator.SignUpDataValidator;
@@ -91,28 +92,28 @@ public class AccountService {
         String mobileNumber = parametersMap.get(RequestParameterName.SIGN_UP_MOBILE_NUMBER)[0];
         HashMap<String, Object> requestAttributes = sessionRequestContent.getRequestAttributes();
         SignUpDataValidator validator = SignUpDataValidator.getInstance();
-        if (!validator.validateLogin(login)) {
-            requestAttributes.put(InfoMessagesKeyWords.REGISTRATION_ERROR_LOGIN_FORMAT, null);
+        if (!validator.fullValidateLogin(login)) {
+            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_LOGIN_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validatePasswordsForEquals(passwordFirst, passwordSecond)) {
-            requestAttributes.put(InfoMessagesKeyWords.REGISTRATION_ERROR_DIFFERENT_PASSWORDS, null);
+            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_DIFFERENT_PASSWORDS, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
-        if (!validator.validatePassword(passwordFirst)) {
-            requestAttributes.put(InfoMessagesKeyWords.REGISTRATION_ERROR_PASSWORD_FORMAT, null);
+        if (!validator.fullValidatePassword(passwordFirst)) {
+            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_PASSWORD_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validateFirstLastName(firstName, lastName)) {
-            requestAttributes.put(InfoMessagesKeyWords.REGISTRATION_ERROR_FIRST_LAST_NAME_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_FIRST_LAST_NAME_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validateRegexEmail(eMail)) {
-            requestAttributes.put(InfoMessagesKeyWords.REGISTRATION_ERROR_EMAIL_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_EMAIL_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validateRegexPhoneNumber(mobileNumber)) {
-            requestAttributes.put(InfoMessagesKeyWords.REGISTRATION_ERROR_MOBILE_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_MOBILE_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         return sessionRequestContent;
@@ -121,8 +122,8 @@ public class AccountService {
     public SessionRequestContent isFreeAccountLogin(SessionRequestContent sessionRequestContent) {
         char[] login = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_UP_LOGIN);
         boolean isFreeLogin = false;
-        if (!SignUpDataValidator.getInstance().validateLogin(login)) {
-            sessionRequestContent.getRequestAttributes().put(InfoMessagesKeyWords.REGISTRATION_ERROR_LOGIN_FORMAT, null);
+        if (!SignUpDataValidator.getInstance().fullValidateLogin(login)) {
+            sessionRequestContent.getRequestAttributes().put(InfoKeyWordMessage.REGISTRATION_ERROR_LOGIN_FORMAT, null);
         } else {
             EntityTransaction transaction = null;
             UserDao userDao;
@@ -138,7 +139,7 @@ public class AccountService {
                 transaction.endTransaction();
             }
             if (!isFreeLogin) {
-                sessionRequestContent.getRequestAttributes().put(InfoMessagesKeyWords.REGISTRATION_INFO_LOGIN_BUSY, null);
+                sessionRequestContent.getRequestAttributes().put(InfoKeyWordMessage.REGISTRATION_INFO_LOGIN_BUSY, null);
             }
         }
         sessionRequestContent.setCurrentResultSuccessful(isFreeLogin);
@@ -193,27 +194,41 @@ public class AccountService {
         char[] login = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_UP_LOGIN);
         char[] password = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_IN_PASSWORD);
         SignUpDataValidator validator = SignUpDataValidator.getInstance();
-        if (validator.validateLogin(login) && validator.validatePassword(password)) {
-            EntityTransaction transaction;
-            UserDao userDao;
-            Optional<User> optionalUser;
+        boolean operationResult = false;
+        if (validator.simpleValidateLogin(login) && validator.simpleValidatePassword(password)) {
+            EntityTransaction transaction = new EntityTransaction();
+            UserDao userDao = new UserDaoImpl();
+            User user = null;
             try {
-                userDao = new UserDaoImpl();
-                transaction.initTransaction(userDao);
-                optionalUser = userDao.findEntityByLogin(login);
-                if(optionalUser.isPresent()){
-                    User user = optionalUser.get();
-                    long userId = user.getId();
-
+                transaction.initTransaction((AbstractDao) userDao);
+                Optional<User> optionalUser = userDao.findEntityByLogin(login);
+                if (optionalUser.isPresent()) {
+                    user = optionalUser.get();
+                    String accountStatus = user.getAccountStatus();
+                    if (accountStatus.equals(AccountStatus.ACTIVATED)) {
+                        long userId = user.getId();
+                        operationResult = userDao.checkAuthAccountLoginPass(login, password, userId);
+                    }
                 }
-            } catch (DaoException e) {
-                e.printStackTrace();
+                HashMap sessionAttr = sessionRequestContent.getSessionAttributes();
+                if (operationResult) {
+                    sessionAttr.put(SessionAttributeName.AUTH_STATUS, "true");
+                    sessionAttr.put(SessionAttributeName.USER_ID, user.getId());
+                    sessionAttr.put(SessionAttributeName.USER_FIRST_NAME, user.getFirstName());
+                    sessionAttr.put(SessionAttributeName.USER_LAST_NAME, user.getLastName());
+                    sessionAttr.put(SessionAttributeName.USER_ROLE, user.getRole());
+                } else {
+                    sessionAttr.put()
+                }
+            } catch (DaoException cause) {
+                operationResult = false;
+                logger.error("Auth exception. ", cause);
             } finally {
-
+                transaction.endTransaction();
             }
         }
-
-
+        sessionRequestContent.setCurrentResultSuccessful(operationResult);
+        return sessionRequestContent;
     }
 
 }

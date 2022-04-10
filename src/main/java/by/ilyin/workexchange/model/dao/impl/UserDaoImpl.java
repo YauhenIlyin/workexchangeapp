@@ -19,6 +19,7 @@ import java.util.*;
 
 public class UserDaoImpl extends AbstractDao implements UserDao {
 
+    private static final Logger logger = LogManager.getLogger();
     private static final String BASE_USER_ROLE_DESCRIPTION = UserRole.SIMPLE_USER;
     private static final String BASE_USER_ACCOUNT_STATUS_DESCRIPTION = AccountStatus.WAITING_ACTIVATION;
     private static final String PS_SQL_EXPRESSION_FIND_ALL_USERS = """
@@ -58,8 +59,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     private static final String CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN = "{call saveAndGetActivationCodeByLoginProcedure(?,?)}";
     private static final String CS_SQL_EXPRESSION_GET_USER_ID_BY_ACTIVATION_CODE = "{call getUserIdByActivationCodeProcedure(?,?)}";
     private static final String CS_SQL_EXPRESSION_ACTIVATE_ACCOUNT_BY_ID = "{call activateAccountByID(?)}";
-
-    private static final Logger logger = LogManager.getLogger();
+    private static final String CS_SQL_EXPRESSION_VALIDATE_AUTH_LOGIN_PASS_BY_USER_ID = "{call validateAuthLoginPassByUserId}";
     //todo ставить false и отключать блок if в каждом методе закрывающий свой Statement
 
     @Override
@@ -143,7 +143,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         }
     }
 
-    //todo почему бы не хранить в StringBuilder  вместо чар
+    //todo почему бы не хранить в StringBuilder  вместо char
     @Override
     public void updateAccountPasswordByLogin(char[] login, char[] password) throws DaoException {
         CallableStatement callableStatement = null;
@@ -229,9 +229,10 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     }
 
     public Optional<Long> findAccountIdByActivationCode(String activationCode) throws DaoException {
+        System.out.println("length: " + activationCode.length() + " activationCode: " + activationCode);
+        CallableStatement callableStatement = null;
         try {
-            System.out.println("length: " + activationCode.length() + " activationCode: " + activationCode);
-            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_USER_ID_BY_ACTIVATION_CODE);
+            callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_USER_ID_BY_ACTIVATION_CODE);
             callableStatement.setString(1, activationCode);
             callableStatement.registerOutParameter(2, Types.BIGINT);
             System.out.println("helloooooo");
@@ -240,6 +241,8 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             return optionalUserId;
         } catch (SQLException cause) {
             throw new DaoException(cause);
+        } finally {
+            super.closeStatement(callableStatement);
         }
 
     }
@@ -248,8 +251,9 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         String activationCode;
+        CallableStatement callableStatement = null;
         try {
-            CallableStatement callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN);
+            callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_GET_ACTIVATION_CODE_BY_USER_LOGIN);
             callableStatement.setString(1, loginSB.toString());
             System.out.println("111111");
             callableStatement.registerOutParameter(2, Types.VARCHAR);
@@ -261,18 +265,35 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         } catch (SQLException cause) {
             throw new DaoException(cause);
         } finally {
+            super.closeStatement(callableStatement);
             SecurityDataCleaner.cleanStringBuilders(loginSB);
         }
         return activationCode;
     }
 
     @Override
-    public boolean checkAuthAccountLoginPass(char[] login, char[] password, long userId) {
+    public boolean checkAuthAccountLoginPass(char[] login, char[] password, long userId) throws DaoException {
         StringBuilder loginSB = new StringBuilder(login.length);
         loginSB.append(login);
         StringBuilder passSB = new StringBuilder(password.length);
         passSB.append(password);
-
+        CallableStatement callableStatement = null;
+        boolean result;
+        try {
+            callableStatement = super.connection.prepareCall(CS_SQL_EXPRESSION_VALIDATE_AUTH_LOGIN_PASS_BY_USER_ID);
+            callableStatement.setString(1, loginSB.toString());
+            callableStatement.setString(2, passSB.toString());
+            callableStatement.setLong(3, userId);
+            callableStatement.registerOutParameter(4, Types.BOOLEAN);
+            callableStatement.execute();
+            result = callableStatement.getBoolean(4);
+        } catch (SQLException cause) {
+            throw new DaoException(cause);
+        } finally {
+            super.closeStatement(callableStatement);
+            SecurityDataCleaner.cleanStringBuilders(loginSB, passSB);
+        }
+        return result;
     }
 
     @Override

@@ -24,7 +24,7 @@ public interface UserDao extends BaseDao<Long, User> {
 
     public String getActivationCodeByUserLogin(char[] login) throws DaoException;
 
-    public boolean checkAuthAccountLoginPass(char[] login, char[] password, long userId);
+    public boolean checkAuthAccountLoginPass(char[] login, char[] password, long userId) throws DaoException;
 
 
 }

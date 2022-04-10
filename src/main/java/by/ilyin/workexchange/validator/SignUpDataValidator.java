@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SignUpDataValidator {
-
+    //todo правила регистрации нужно вынести в проперти файл
     private static SignUpDataValidator instance;
 
     private static Logger logger = LogManager.getLogger();
@@ -64,8 +64,12 @@ public class SignUpDataValidator {
         return new SignUpDataValidator();
     }
 
-    public boolean validateLogin(char[] login) {
-        if (login == null && !charArrValueLengthValidator(login, MIN_LOGIN_LENGTH, MAX_LOGIN_LENGTH)) {
+    public boolean simpleValidateLogin(char[] login) {
+        return charArrValueLengthValidator(login, MIN_LOGIN_LENGTH, MAX_LOGIN_LENGTH);
+    }
+
+    public boolean fullValidateLogin(char[] login) {
+        if (!simpleValidateLogin(login)) {
             return false;
         }
         int lowerCaseLetterCount = 0;
@@ -100,8 +104,12 @@ public class SignUpDataValidator {
         return true;
     }
 
-    public boolean validatePassword(char[] password) {
-        if (password == null || !charArrValueLengthValidator(password, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH)) {
+    public boolean simpleValidatePassword(char[] password) {
+        return charArrValueLengthValidator(password, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH);
+    }
+
+    public boolean fullValidatePassword(char[] password) {
+        if (!simpleValidatePassword(password)) {
             return false;
         }
         int lowerCaseLetterCount = 0;
