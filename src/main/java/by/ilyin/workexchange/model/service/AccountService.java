@@ -93,27 +93,27 @@ public class AccountService {
         HashMap<String, Object> requestAttributes = sessionRequestContent.getRequestAttributes();
         SignUpDataValidator validator = SignUpDataValidator.getInstance();
         if (!validator.fullValidateLogin(login)) {
-            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_LOGIN_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.SIGN_UP_ERROR_LOGIN_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validatePasswordsForEquals(passwordFirst, passwordSecond)) {
-            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_DIFFERENT_PASSWORDS, null);
+            requestAttributes.put(InfoKeyWordMessage.SIGN_UP_ERROR_DIFFERENT_PASSWORDS, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.fullValidatePassword(passwordFirst)) {
-            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_PASSWORD_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.SIGN_UP_ERROR_PASSWORD_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validateFirstLastName(firstName, lastName)) {
-            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_FIRST_LAST_NAME_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.SIGN_UP_ERROR_FIRST_LAST_NAME_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validateRegexEmail(eMail)) {
-            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_EMAIL_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.SIGN_UP_ERROR_EMAIL_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         if (!validator.validateRegexPhoneNumber(mobileNumber)) {
-            requestAttributes.put(InfoKeyWordMessage.REGISTRATION_ERROR_MOBILE_FORMAT, null);
+            requestAttributes.put(InfoKeyWordMessage.SIGN_UP_ERROR_MOBILE_FORMAT, null);
             sessionRequestContent.setCurrentResultSuccessful(false);
         }
         return sessionRequestContent;
@@ -123,7 +123,7 @@ public class AccountService {
         char[] login = sessionRequestContent.getSecurityParameters().get(RequestParameterName.SIGN_UP_LOGIN);
         boolean isFreeLogin = false;
         if (!SignUpDataValidator.getInstance().fullValidateLogin(login)) {
-            sessionRequestContent.getRequestAttributes().put(InfoKeyWordMessage.REGISTRATION_ERROR_LOGIN_FORMAT, null);
+            sessionRequestContent.getRequestAttributes().put(InfoKeyWordMessage.SIGN_UP_ERROR_LOGIN_FORMAT, null);
         } else {
             EntityTransaction transaction = null;
             UserDao userDao;
@@ -139,7 +139,7 @@ public class AccountService {
                 transaction.endTransaction();
             }
             if (!isFreeLogin) {
-                sessionRequestContent.getRequestAttributes().put(InfoKeyWordMessage.REGISTRATION_INFO_LOGIN_BUSY, null);
+                sessionRequestContent.getRequestAttributes().put(InfoKeyWordMessage.SIGN_UP_INFO_LOGIN_BUSY, null);
             }
         }
         sessionRequestContent.setCurrentResultSuccessful(isFreeLogin);
